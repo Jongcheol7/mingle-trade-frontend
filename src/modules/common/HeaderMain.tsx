@@ -14,6 +14,7 @@ export default function HeaderMain() {
       </div>
       <div>
         <p>로그인</p>
+        <p>로그아웃</p>
       </div>
     </div>
   );
