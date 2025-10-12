@@ -4,6 +4,7 @@ export type CoinInfo = {
   prevClosePrice: number;
   price: number;
   rate: number;
+  volume: number;
 };
 
 export type BinanceStreamTicker = {

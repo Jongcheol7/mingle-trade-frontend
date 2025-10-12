@@ -24,3 +24,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 스크롤바 없애기 위함 */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none; /* Chrome, Safari */
+}
+
+/* 흔들림 방지용 */
+html {
+  overflow-y: scroll;
+}
+
+body {
+  overflow-x: hidden;
+}

@@ -1,4 +1,4 @@
-import BinanceRealtimePrice from "../common/BinanceRealtimePrice";
+import BinanceRealtimePrice from "../price/BinanceRealtimePrice";
 import HeaderMain from "../common/HeaderMain";
 
 export default function HomeMain() {
