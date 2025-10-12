@@ -2,9 +2,10 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { BinanceStreamTicker, CoinInfo } from "@/types/coin";
-import SearchComponent from "../common/SearchComponent";
+import SearchComponent from "@/modules/common/SearchComponent";
 import { formatVolume } from "./formatVolume";
 import BinanceRealTimeLabel from "./BinanceRealtimeLabel";
+import Image from "next/image";
 
 const today = new Date();
 const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
@@ -73,6 +74,7 @@ export default function BinanceRealtimePrice() {
                     price: Number(p.price),
                     rate: 0,
                     volume: 0,
+                    logoUrl: p.logoUrl,
                   };
 
             const prev = Number(p.price);
@@ -87,6 +89,7 @@ export default function BinanceRealtimePrice() {
               price: now,
               rate: rate,
               volume: volume,
+              logoUrl: p.logoUrl,
             };
           })
           .filter(Boolean)
@@ -102,7 +105,7 @@ export default function BinanceRealtimePrice() {
   }, [prevCloseInfo, sortKey, sortOrder]);
 
   return (
-    <div className="p-4 relative w-[380px] rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
+    <div className="p-4 relative w-[360px] rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-bold">
           📈 실시간 USDT 시세 <span className="text-sm">binance 09:00기준</span>
@@ -112,7 +115,7 @@ export default function BinanceRealtimePrice() {
       <ul className="min-h-[350px] max-h-[350px] overflow-auto text-sm scrollbar-none">
         <li
           className={
-            "sticky grid grid-cols-[100px_80px_60px_100px] py-1 font-bold"
+            "sticky grid grid-cols-[100px_80px_60px_80px] py-1 font-bold"
           }
         >
           <span className="">자산명</span>
@@ -152,13 +155,27 @@ export default function BinanceRealtimePrice() {
           .map((coin) => (
             <li
               key={coin.symbol}
-              className={`grid grid-cols-[100px_80px_60px_100px] py-1 ${
-                coin.rate >= 0 ? "text-green-500" : "text-red-500"
-              }`}
+              className={`grid grid-cols-[100px_80px_60px_80px] py-1 `}
             >
-              <span className="text-left">{coin.symbol}</span>
+              <div className="flex items-center gap-2">
+                <Image
+                  src={coin.logoUrl} // ✅ logoUrl DB에서 받은 값
+                  alt={""}
+                  width={16}
+                  height={16}
+                  className="rounded-full"
+                  unoptimized // ✅ CDN 이미지 최적화 없이 바로 로드 (빠름)
+                />
+                <span className="text-left">{coin.symbol}</span>
+              </div>
               <span className="text-right">{coin.price}</span>
-              <span className="text-right">{coin.rate.toFixed(2)}%</span>
+              <span
+                className={`text-right ${
+                  coin.rate >= 0 ? "text-green-500" : "text-red-500"
+                }`}
+              >
+                {coin.rate.toFixed(2)}%
+              </span>
               <span className="text-right">{formatVolume(coin.volume)}</span>
             </li>
           ))}

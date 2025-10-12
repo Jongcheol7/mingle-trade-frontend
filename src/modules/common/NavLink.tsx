@@ -1,20 +1,21 @@
+"use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type Props = {
   children: string;
   href: string;
-  main: string;
-  setMain: (val: string) => void;
 };
 
-export default function NavLink({ children, href, main, setMain }: Props) {
+export default function NavLink({ children, href }: Props) {
+  const path = usePathname();
+  console.log(path);
   return (
     <Link
       href={href}
-      className={`${
-        main === children ? "font-bold text-blue-500 text-xl" : ""
+      className={`className="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium" ${
+        path === href ? "font-bold text-blue-500 text-xl" : "text-[18px]"
       }`}
-      onClick={() => setMain(children)}
     >
       {children}
     </Link>

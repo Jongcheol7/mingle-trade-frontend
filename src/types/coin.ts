@@ -5,6 +5,7 @@ export type CoinInfo = {
   price: number;
   rate: number;
   volume: number;
+  logoUrl: string;
 };
 
 export type BinanceStreamTicker = {
