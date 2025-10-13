@@ -8,14 +8,13 @@ type Props = {
 };
 
 export default function NavLink({ children, href }: Props) {
-  const path = usePathname();
-  console.log(path);
+  const pathname = usePathname();
+
   return (
     <Link
       href={href}
-      className={`className="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium" ${
-        path === href ? "font-bold text-blue-500 text-xl" : "text-[18px]"
-      }`}
+      className={`relative font-medium text-xl text-amber-800 transition-all duration-200 hover:text-amber-600 
+        ${pathname.includes(href) ? "text-amber-600 font-semibold" : ""}`}
     >
       {children}
     </Link>
