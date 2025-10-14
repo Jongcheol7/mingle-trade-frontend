@@ -112,7 +112,7 @@ export default function BinanceRealtimePrice() {
         </h1>
         <SearchComponent setKeyword={setKeyword} />
       </div>
-      <ul className="min-h-[350px] max-h-[350px] overflow-auto text-sm scrollbar-none">
+      <ul className="min-h-[350px] max-h-[450px] overflow-auto text-sm scrollbar-none">
         <li
           className={
             "sticky grid grid-cols-[100px_80px_60px_80px] py-1 font-bold"
