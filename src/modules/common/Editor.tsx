@@ -48,7 +48,7 @@ import "ckeditor5/ckeditor5.css";
  */
 const LICENSE_KEY = "GPL"; // or <YOUR_LICENSE_KEY>.
 
-export default function Editor() {
+export default function Editor({ onChange }) {
   const editorContainerRef = useRef(null);
   const editorRef = useRef(null);
   const [isLayoutReady, setIsLayoutReady] = useState(false);
@@ -223,7 +223,14 @@ export default function Editor() {
         <div className="editor-container__editor">
           <div ref={editorRef}>
             {editorConfig && (
-              <CKEditor editor={ClassicEditor} config={editorConfig} />
+              <CKEditor
+                editor={ClassicEditor}
+                config={editorConfig}
+                onChange={(event, editor) => {
+                  const data = editor.getData();
+                  if (onChange) onChange(data);
+                }}
+              />
             )}
           </div>
         </div>

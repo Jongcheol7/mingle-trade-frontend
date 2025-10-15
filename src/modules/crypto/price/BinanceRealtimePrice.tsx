@@ -105,7 +105,7 @@ export default function BinanceRealtimePrice() {
   }, [prevCloseInfo, sortKey, sortOrder]);
 
   return (
-    <div className="p-4 relative w-[360px] rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
+    <div className="p-4 relative w-[370px] rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
       <div className="flex flex-col gap-1">
         <h1 className="text-xl font-bold">
           📈 실시간 USDT 시세 <span className="text-sm">binance 09:00기준</span>
@@ -115,7 +115,7 @@ export default function BinanceRealtimePrice() {
       <ul className="min-h-[350px] max-h-[450px] overflow-auto text-sm scrollbar-none">
         <li
           className={
-            "sticky grid grid-cols-[100px_80px_60px_80px] py-1 font-bold"
+            "sticky grid grid-cols-[100px_80px_70px_80px] py-1 font-bold text-[14px]"
           }
         >
           <span className="">자산명</span>
@@ -155,28 +155,34 @@ export default function BinanceRealtimePrice() {
           .map((coin) => (
             <li
               key={coin.symbol}
-              className={`grid grid-cols-[100px_80px_60px_80px] py-1 `}
+              className={`grid grid-cols-[100px_80px_70px_80px] py-1 border-b border-gray-300`}
             >
               <div className="flex items-center gap-2">
                 <Image
                   src={coin.logoUrl} // ✅ logoUrl DB에서 받은 값
                   alt={""}
-                  width={16}
-                  height={16}
+                  width={20}
+                  height={20}
                   className="rounded-full"
                   unoptimized // ✅ CDN 이미지 최적화 없이 바로 로드 (빠름)
                 />
-                <span className="text-left">{coin.symbol}</span>
+                <span className="text-left text-[16px] font-bold">
+                  {coin.symbol}
+                </span>
               </div>
-              <span className="text-right">{coin.price}</span>
+              <span className="text-right text-[16px] font-bold">
+                {coin.price}
+              </span>
               <span
-                className={`text-right ${
+                className={`text-right text-[16px] ${
                   coin.rate >= 0 ? "text-green-500" : "text-red-500"
                 }`}
               >
                 {coin.rate.toFixed(2)}%
               </span>
-              <span className="text-right">{formatVolume(coin.volume)}</span>
+              <span className="text-right text-[16px] font-bold">
+                {formatVolume(coin.volume)}
+              </span>
             </li>
           ))}
       </ul>

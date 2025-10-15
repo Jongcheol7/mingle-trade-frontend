@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LayoutProp } from "@/types/common";
 import HeaderMain from "@/modules/common/HeaderMain";
+import ReactQueryClient from "@/components/common/ReactQueryProvider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,12 +24,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProp) {
   return (
     <html lang="en">
-      <HeaderMain />
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased my-5 mx-10`}
-      >
-        {children}
-      </body>
+      <ReactQueryClient>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased my-5 mx-30`}
+        >
+          <HeaderMain />
+          {children}
+          <Toaster richColors position="bottom-center" />
+        </body>
+      </ReactQueryClient>
     </html>
   );
 }
