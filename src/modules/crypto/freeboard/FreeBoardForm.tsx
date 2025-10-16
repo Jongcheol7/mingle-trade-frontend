@@ -1,20 +1,21 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import useFreeBoardSave from "@/hooks/crypto/freeboard/useFreeBoardSave";
+import { useFreeBoardSave } from "@/hooks/crypto/freeboard/useFreeBoardReactQuery";
 import Editor from "@/modules/common/Editor";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 export default function FreeBoardForm() {
   const router = useRouter();
-  const { register, getValues, setValue, handleSubmit } = useForm();
+  const { register, setValue, handleSubmit } = useForm();
   const { mutate: saveMutate } = useFreeBoardSave();
 
   const handleSave = (data) => {
     console.log(data);
     data.writer = "이종철";
     saveMutate(data);
+    router.back();
   };
 
   return (

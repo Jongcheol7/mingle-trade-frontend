@@ -1,19 +1,25 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
-import { dummy } from "./Dummy";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
-const ITEMS_PER_PAGE = 10; // 한 페이지당 게시글 수
+import { useFreeBoardAllLists } from "@/hooks/crypto/freeboard/useFreeBoardReactQuery";
+import { useState } from "react";
+import { FreeBoard } from "@/types/freeboard";
 
 export default function FreeBoardLists() {
   const [page, setPage] = useState(1);
+  const { data } = useFreeBoardAllLists(page);
 
-  const start = (page - 1) * ITEMS_PER_PAGE;
-  const end = start + ITEMS_PER_PAGE;
-  const currentPosts = dummy.slice(start, end);
-  const totalPages = Math.ceil(dummy.length / ITEMS_PER_PAGE);
+  const lists = data?.lists ?? [];
+  const totalCount = data?.totalCount ?? 0;
+  const totalPages = Math.ceil(totalCount / 10);
+
+  const handlePageChange = (reqPage: number) => {
+    if (reqPage < 1 || reqPage > totalPages) return;
+    setPage(reqPage);
+  };
+
+  console.log("받은 데이터 : ", data);
 
   return (
     <div className="w-full mx-auto">
@@ -27,7 +33,7 @@ export default function FreeBoardLists() {
             <p>조회수</p>
           </div>
 
-          {currentPosts.map((post) => (
+          {lists.map((post: FreeBoard) => (
             <div
               key={post.id}
               className="grid grid-cols-[70px_4fr_150px_70px] text-center py-3 hover:bg-gray-50 transition border-b last:border-none"
@@ -46,8 +52,9 @@ export default function FreeBoardLists() {
       {/* 페이지네이션 */}
       <div className="flex justify-center items-center gap-3 mt-6">
         <Button
+          className="cursor-pointer"
           variant="outline"
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          onClick={() => handlePageChange(page - 1)}
           disabled={page === 1}
         >
           이전
@@ -58,8 +65,9 @@ export default function FreeBoardLists() {
         </p>
 
         <Button
+          className="cursor-pointer"
           variant="outline"
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          onClick={() => handlePageChange(page + 1)}
           disabled={page === totalPages}
         >
           다음
@@ -67,7 +75,7 @@ export default function FreeBoardLists() {
         {/* 글쓰기 버튼 (오른쪽 정렬) */}
         <div className="flex justify-end">
           <Link href="/crypto/freeboard/write">
-            <Button>글쓰기</Button>
+            <Button className="cursor-pointer">글쓰기</Button>
           </Link>
         </div>
       </div>
