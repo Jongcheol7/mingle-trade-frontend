@@ -5,13 +5,31 @@ import { Button } from "@/components/ui/button";
 import { useFreeBoardAllLists } from "@/hooks/crypto/freeboard/useFreeBoardReactQuery";
 import { useState } from "react";
 import { FreeBoard } from "@/types/freeboard";
+import { Loader2 } from "lucide-react";
 
 export default function FreeBoardLists() {
   const [page, setPage] = useState(1);
-  const { data } = useFreeBoardAllLists(page);
+  const { data, isLoading } = useFreeBoardAllLists(page);
 
-  const lists = data?.lists ?? [];
-  const totalCount = data?.totalCount ?? 0;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center w-full items-center">
+        <Loader2 className="w-10 h-10 animate-spin text-gray-500" />
+      </div>
+    );
+  }
+
+  // ✅ data 없을 때 처리
+  if (!data || !data.lists?.length) {
+    return (
+      <div className="flex flex-col justify-center items-center h-64 text-gray-500">
+        <p>게시글이 없습니다.</p>
+      </div>
+    );
+  }
+
+  const lists = data.lists ?? [];
+  const totalCount = data.total ?? 0;
   const totalPages = Math.ceil(totalCount / 10);
 
   const handlePageChange = (reqPage: number) => {
@@ -19,7 +37,12 @@ export default function FreeBoardLists() {
     setPage(reqPage);
   };
 
-  console.log("받은 데이터 : ", data);
+  const startPage = Math.floor((page - 1) / 10) * 10 + 1;
+  const endPage = Math.min(startPage + 9, totalPages);
+  const pageNums = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i
+  );
 
   return (
     <div className="w-full mx-auto">
@@ -60,9 +83,16 @@ export default function FreeBoardLists() {
           이전
         </Button>
 
-        <p className="text-sm text-gray-600">
-          {page} / {totalPages}
-        </p>
+        {pageNums.map((num) => (
+          <p
+            key={num}
+            className={`text-sm text-gray-600 cursor-pointer ${
+              page === num ? "font-bold text-black" : "text-gray-600"
+            }`}
+          >
+            {num}
+          </p>
+        ))}
 
         <Button
           className="cursor-pointer"
