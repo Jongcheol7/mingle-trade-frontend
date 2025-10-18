@@ -6,6 +6,7 @@ import SearchComponent from "@/modules/common/SearchComponent";
 import { formatVolume } from "./formatVolume";
 import BinanceRealTimeLabel from "./BinanceRealtimeLabel";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const today = new Date();
 const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
@@ -24,6 +25,7 @@ export default function BinanceRealtimePrice() {
     "symbol" | "price" | "rate" | "volume"
   >("volume");
   const [sortOrder, setSortOrder] = useState("asc");
+  const router = useRouter();
 
   useEffect(() => {
     const getPrevCloseInfo = async () => {
@@ -166,7 +168,10 @@ export default function BinanceRealtimePrice() {
                   className="rounded-full"
                   unoptimized // ✅ CDN 이미지 최적화 없이 바로 로드 (빠름)
                 />
-                <span className="text-left text-[16px] font-bold">
+                <span
+                  className="text-left text-[16px] font-bold cursor-pointer"
+                  onClick={() => router.push(`/crypto/chart/${coin.symbol}`)}
+                >
                   {coin.symbol}
                 </span>
               </div>

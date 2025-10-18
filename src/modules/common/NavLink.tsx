@@ -13,7 +13,7 @@ export default function NavLink({ children, href }: Props) {
   return (
     <Link
       href={href}
-      className={`relative font-medium text-xl text-amber-800 transition-all duration-200 hover:text-amber-600 
+      className={`relative font-medium text-2xl text-amber-800 transition-all duration-200 hover:text-amber-600 
         ${pathname.includes(href) ? "text-amber-600 font-semibold" : ""}`}
     >
       {children}
