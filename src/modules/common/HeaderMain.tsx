@@ -5,10 +5,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AuthPopup from "../auth/AuthPopup";
 import { AnimatePresence } from "framer-motion";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function HeaderMain() {
   const router = useRouter();
   const [authVisible, setAuthVisible] = useState(false);
+  const { name, nickname } = useUserStore();
+
+  console.log("ddd ", name, nickname);
+
   return (
     <div className="flex items-center justify-between mb-8">
       <div
@@ -22,12 +27,15 @@ export default function HeaderMain() {
         <NavLink href={"/crypto"}>Crypto</NavLink>
         <NavLink href={"/stock"}>Stock</NavLink>
       </div>
-      <button
-        className="font-bold text-xl cursor-pointer"
-        onClick={() => setAuthVisible(true)}
-      >
-        Login
-      </button>
+      <div className="flex items-center gap-3">
+        <p>{nickname ? name + "님 안녕하세요" : "...님 안녕하세요"}</p>
+        <button
+          className="font-bold text-xl cursor-pointer"
+          onClick={() => setAuthVisible(true)}
+        >
+          {name ? "Logout" : "Login"}
+        </button>
+      </div>
       <AnimatePresence>
         {authVisible && <AuthPopup setAuthVisible={setAuthVisible} />}
       </AnimatePresence>
