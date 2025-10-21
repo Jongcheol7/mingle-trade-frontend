@@ -9,6 +9,8 @@ interface CustomJwtPayload extends JwtPayload {
   name?: string;
   picture?: string;
   provider?: string;
+  nickname?: string;
+  profileImage?: string;
 }
 
 export default function HomeMain() {
@@ -34,6 +36,8 @@ export default function HomeMain() {
         name: decoded.name || null,
         picture: decoded.picture || null,
         provider: decoded.provider || null,
+        nickname: decoded.nickname || null,
+        profileImage: decoded.profileImage || null,
       });
 
       router.replace("/");

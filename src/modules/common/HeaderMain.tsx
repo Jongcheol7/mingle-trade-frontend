@@ -6,13 +6,12 @@ import { useState } from "react";
 import AuthPopup from "../auth/AuthPopup";
 import { AnimatePresence } from "framer-motion";
 import { useUserStore } from "@/store/useUserStore";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function HeaderMain() {
   const router = useRouter();
   const [authVisible, setAuthVisible] = useState(false);
-  const { name, nickname } = useUserStore();
-
-  console.log("ddd ", name, nickname);
+  const { nickname, profileImage } = useUserStore();
 
   return (
     <div className="flex items-center justify-between mb-8">
@@ -28,12 +27,21 @@ export default function HeaderMain() {
         <NavLink href={"/stock"}>Stock</NavLink>
       </div>
       <div className="flex items-center gap-3">
-        <p>{nickname ? name + "님 안녕하세요" : "...님 안녕하세요"}</p>
+        <div
+          className="flex gap-1 items-center cursor-pointer"
+          onClick={() => router.push("/auth/mypage")}
+        >
+          <Avatar>
+            <AvatarImage src={profileImage ?? undefined} />
+            <AvatarFallback> </AvatarFallback>
+          </Avatar>
+          <p>{nickname ? nickname + "님" : ""}</p>
+        </div>
         <button
           className="font-bold text-xl cursor-pointer"
           onClick={() => setAuthVisible(true)}
         >
-          {name ? "Logout" : "Login"}
+          {nickname ? "Logout" : "Login"}
         </button>
       </div>
       <AnimatePresence>

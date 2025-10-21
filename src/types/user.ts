@@ -6,6 +6,9 @@ export type User = {
   provider: string | null;
   nickname: string | null;
   profileImage: string | null;
+};
+
+export type UserStore = User & {
   setUser: (data: Partial<User>) => void;
   clearUser: () => void;
 };

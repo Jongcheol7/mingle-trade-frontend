@@ -1,8 +1,8 @@
-import { User } from "@/types/user";
+import { UserStore } from "@/types/user";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-export const useUserStore = create<User>()(
+export const useUserStore = create<UserStore>()(
   persist(
     (set) => ({
       token: null,
