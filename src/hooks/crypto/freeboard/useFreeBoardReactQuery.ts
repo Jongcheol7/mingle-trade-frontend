@@ -38,3 +38,16 @@ export function useFreeBoardAllLists(page = 1) {
     },
   });
 }
+
+export function useFreeBoardDetails(id: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ["freeboardDetails", id],
+    queryFn: async () => {
+      console.log("받은 id : ", id);
+      const res = await axios.get(`http://localhost:8080/api/freeboard/${id}`);
+      console.log("결과 : ", res);
+      return res.data;
+    },
+    enabled,
+  });
+}

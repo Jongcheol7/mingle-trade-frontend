@@ -6,10 +6,13 @@ import { useFreeBoardAllLists } from "@/hooks/crypto/freeboard/useFreeBoardReact
 import { useState } from "react";
 import { FreeBoard } from "@/types/freeboard";
 import { Loader2 } from "lucide-react";
+import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
+import { useRouter } from "next/navigation";
 
 export default function FreeBoardLists() {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useFreeBoardAllLists(page);
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -22,8 +25,11 @@ export default function FreeBoardLists() {
   // ✅ data 없을 때 처리
   if (!data || !data.lists?.length) {
     return (
-      <div className="flex flex-col justify-center items-center h-64 text-gray-500">
+      <div className="flex w-full gap-5 flex-col justify-center items-center text-gray-500">
         <p>게시글이 없습니다.</p>
+        <Link href="/crypto/freeboard/write/0">
+          <Button className="cursor-pointer">글쓰기</Button>
+        </Link>
       </div>
     );
   }
@@ -44,6 +50,10 @@ export default function FreeBoardLists() {
     (_, i) => startPage + i
   );
 
+  const handleViewContent = (postId: number) => {
+    router.push(`/crypto/freeboard/${postId}`);
+  };
+
   return (
     <div className="w-full mx-auto">
       {/* 게시글 리스트 */}
@@ -62,7 +72,10 @@ export default function FreeBoardLists() {
               className="grid grid-cols-[70px_4fr_150px_70px] text-center py-3 hover:bg-gray-50 transition border-b last:border-none"
             >
               <p className="text-gray-500">{post.id}</p>
-              <p className="text-blue-600 hover:underline cursor-pointer text-left pl-4">
+              <p
+                className="text-blue-600 hover:underline cursor-pointer text-left pl-4"
+                onClick={() => handleViewContent(post.id)}
+              >
                 {post.title}
               </p>
               <p>{post.writer}</p>
@@ -104,7 +117,7 @@ export default function FreeBoardLists() {
         </Button>
         {/* 글쓰기 버튼 (오른쪽 정렬) */}
         <div className="flex justify-end">
-          <Link href="/crypto/freeboard/write">
+          <Link href="/crypto/freeboard/write/0">
             <Button className="cursor-pointer">글쓰기</Button>
           </Link>
         </div>

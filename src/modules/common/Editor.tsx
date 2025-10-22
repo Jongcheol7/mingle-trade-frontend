@@ -40,6 +40,7 @@ import {
   Emoji,
   Mention,
   Markdown,
+  EditorConfig,
 } from "ckeditor5";
 
 import "ckeditor5/ckeditor5.css";
@@ -48,7 +49,17 @@ import "ckeditor5/ckeditor5.css";
  */
 const LICENSE_KEY = "GPL"; // or <YOUR_LICENSE_KEY>.
 
-export default function Editor({ onChange }) {
+type EditorProps = {
+  onChange?: (data: string) => void;
+  readOnly?: boolean;
+  content?: string;
+};
+
+export default function Editor({
+  onChange,
+  readOnly = false,
+  content = "",
+}: EditorProps) {
   const editorContainerRef = useRef(null);
   const editorRef = useRef(null);
   const [isLayoutReady, setIsLayoutReady] = useState(false);
@@ -181,7 +192,7 @@ export default function Editor({ onChange }) {
             "imageStyle:breakText",
           ],
         },
-        initialData: "",
+        initialData: content || "",
         licenseKey: LICENSE_KEY,
         link: {
           addTargetToExternalLinks: true,
@@ -210,9 +221,9 @@ export default function Editor({ onChange }) {
         table: {
           contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"],
         },
-      },
+      } as EditorConfig,
     };
-  }, [isLayoutReady]);
+  }, [isLayoutReady, content]);
 
   return (
     <div className="main-container">
@@ -225,7 +236,14 @@ export default function Editor({ onChange }) {
             {editorConfig && (
               <CKEditor
                 editor={ClassicEditor}
-                config={editorConfig}
+                config={editorConfig as EditorConfig}
+                onReady={(editor) => {
+                  if (readOnly) {
+                    editor.enableReadOnlyMode("read-only-mode");
+                  } else {
+                    editor.disableReadOnlyMode("read-only-mode");
+                  }
+                }}
                 onChange={(event, editor) => {
                   const data = editor.getData();
                   if (onChange) onChange(data);
