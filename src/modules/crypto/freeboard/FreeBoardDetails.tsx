@@ -14,7 +14,7 @@ type Props = {
 export default function FreeBoardDetails({ id }: Props) {
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
-  const { data, isFetching, isLoading } = useFreeBoardDetails(id, id !== 0);
+  const { data, isFetching, isLoading } = useFreeBoardDetails(id);
 
   useEffect(() => {
     setHydrated(true);

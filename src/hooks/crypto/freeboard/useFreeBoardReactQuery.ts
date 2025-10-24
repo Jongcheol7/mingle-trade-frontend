@@ -49,7 +49,7 @@ export function useFreeBoardAllLists(page = 1) {
   });
 }
 
-export function useFreeBoardDetails(id: number, enabled: boolean) {
+export function useFreeBoardDetails(id: number) {
   return useQuery({
     queryKey: ["freeboardDetails", id],
     queryFn: async () => {
@@ -58,6 +58,6 @@ export function useFreeBoardDetails(id: number, enabled: boolean) {
       console.log("결과 : ", res);
       return res.data;
     },
-    enabled,
+    enabled: Number(id) !== 0,
   });
 }

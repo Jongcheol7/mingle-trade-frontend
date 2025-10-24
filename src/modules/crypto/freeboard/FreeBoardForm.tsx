@@ -7,6 +7,7 @@ import {
 } from "@/hooks/crypto/freeboard/useFreeBoardReactQuery";
 import Editor from "@/modules/common/Editor";
 import { useUserStore } from "@/store/useUserStore";
+import { FreeBoard } from "@/types/freeboard";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,10 +21,11 @@ type Props = {
 export default function FreeBoardForm({ id }: Props) {
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
-  const { register, setValue, handleSubmit, setFocus, reset } = useForm();
+  const { register, setValue, handleSubmit, setFocus, reset } =
+    useForm<FreeBoard>();
   const { mutate: saveMutate } = useFreeBoardSave();
-  const { nickname } = useUserStore();
-  const { data, isFetching, isLoading } = useFreeBoardDetails(id, id !== 0);
+  const { nickname, email } = useUserStore();
+  const { data, isFetching, isLoading } = useFreeBoardDetails(id);
 
   useEffect(() => {
     setHydrated(true);
@@ -50,20 +52,21 @@ export default function FreeBoardForm({ id }: Props) {
     );
   }
 
-  const handleSave = (data) => {
-    if (!data.title) {
+  const handleSave = (val: FreeBoard) => {
+    if (!val.title) {
       toast.error("제목을 입력하세요.");
       setFocus("title");
       return false;
     }
-    if (data.content.trim() === "") {
+    if (val.content.trim() === "") {
       toast.error("내용을 입력하세요.");
       setFocus("content");
       return false;
     }
-    data.id = id;
-    data.writer = nickname;
-    saveMutate(data);
+    val.id = id;
+    val.writer = nickname!;
+    val.email = email!;
+    saveMutate(val);
     router.push("/crypto/freeboard");
   };
 

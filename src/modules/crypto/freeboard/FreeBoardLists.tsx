@@ -9,11 +9,13 @@ import { Loader2 } from "lucide-react";
 import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function FreeBoardLists() {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useFreeBoardAllLists(page);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   if (isLoading) {
     return (
@@ -55,10 +57,12 @@ export default function FreeBoardLists() {
     //조회수 insert 요청
     const res = await axios.post("http://localhost:8080/api/freeboard/viewUp", {
       boardId: post.id,
+      email: post.email,
     });
-
-    console.log("조회수 res : ", res);
-
+    console.log("res ddd : ", res);
+    if (res.data === "success") {
+      queryClient.invalidateQueries({ queryKey: ["freeboardLists", page] });
+    }
     router.push(`/crypto/freeboard/${post.id}`);
   };
 

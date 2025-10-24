@@ -32,7 +32,7 @@ export default function HomeMain() {
       //필요하다면 Zustand에도 사용자 상태 저장하자. (추후 TO-DO)
       setUser({
         token,
-        email: decoded.email || decoded.sub || null,
+        email: decoded.sub || null,
         name: decoded.name || null,
         picture: decoded.picture || null,
         provider: decoded.provider || null,
