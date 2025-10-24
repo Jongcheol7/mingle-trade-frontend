@@ -40,13 +40,18 @@ export default function FreeBoardDetails({ id }: Props) {
         <div className="flex gap-2">
           <Input type="text" value={data.title} readOnly />
           <Button
+            className=" cursor-pointer"
             variant={"secondary"}
             onClick={() => router.push(`/crypto/freeboard/write/${data.id}`)}
           >
             수정
           </Button>
-          <Button onClick={router.back} variant={"destructive"}>
-            취소
+          <Button
+            className=" cursor-pointer"
+            onClick={router.back}
+            variant={"destructive"}
+          >
+            뒤로가기
           </Button>
         </div>
         <Editor readOnly={true} content={data.content} />

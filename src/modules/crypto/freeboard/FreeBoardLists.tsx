@@ -8,6 +8,7 @@ import { FreeBoard } from "@/types/freeboard";
 import { Loader2 } from "lucide-react";
 import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function FreeBoardLists() {
   const [page, setPage] = useState(1);
@@ -50,8 +51,15 @@ export default function FreeBoardLists() {
     (_, i) => startPage + i
   );
 
-  const handleViewContent = (postId: number) => {
-    router.push(`/crypto/freeboard/${postId}`);
+  const handleViewContent = async (post: FreeBoard) => {
+    //조회수 insert 요청
+    const res = await axios.post("http://localhost:8080/api/freeboard/viewUp", {
+      boardId: post.id,
+    });
+
+    console.log("조회수 res : ", res);
+
+    router.push(`/crypto/freeboard/${post.id}`);
   };
 
   return (
@@ -74,7 +82,7 @@ export default function FreeBoardLists() {
               <p className="text-gray-500">{post.id}</p>
               <p
                 className="text-blue-600 hover:underline cursor-pointer text-left pl-4"
-                onClick={() => handleViewContent(post.id)}
+                onClick={() => handleViewContent(post)}
               >
                 {post.title}
               </p>

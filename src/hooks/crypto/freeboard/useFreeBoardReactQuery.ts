@@ -1,3 +1,4 @@
+import { FreeBoard } from "@/types/freeboard";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
@@ -5,12 +6,21 @@ import { toast } from "sonner";
 export function useFreeBoardSave() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data) => {
-      const res = await axios.post(
-        "http://localhost:8080/api/freeboard/insert",
-        data
-      );
-      return res.data;
+    mutationFn: async (data: FreeBoard) => {
+      let res;
+      if (Number(data.id) === 0) {
+        res = await axios.post(
+          "http://localhost:8080/api/freeboard/insert",
+          data
+        );
+      } else if (Number(data.id) !== 0) {
+        res = await axios.put(
+          "http://localhost:8080/api/freeboard/update",
+          data
+        );
+      }
+
+      return res?.data || null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["freeboardLists"] });

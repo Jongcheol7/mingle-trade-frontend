@@ -61,9 +61,10 @@ export default function FreeBoardForm({ id }: Props) {
       setFocus("content");
       return false;
     }
+    data.id = id;
     data.writer = nickname;
     saveMutate(data);
-    router.back();
+    router.push("/crypto/freeboard");
   };
 
   return (
@@ -72,8 +73,14 @@ export default function FreeBoardForm({ id }: Props) {
         <div className="flex flex-col gap-2 max-w-[795px]">
           <div className="flex gap-2">
             <Input type="text" {...register("title")} />
-            <Button variant={"secondary"}>저장</Button>
-            <Button onClick={router.back} variant={"destructive"}>
+            <Button variant={"secondary"} className="cursor-pointer">
+              저장
+            </Button>
+            <Button
+              onClick={router.back}
+              variant={"destructive"}
+              className="cursor-pointer"
+            >
               취소
             </Button>
           </div>
