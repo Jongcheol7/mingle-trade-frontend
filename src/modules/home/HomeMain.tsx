@@ -1,48 +1,39 @@
 "use client";
 import { useUserStore } from "@/store/useUserStore";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { jwtDecode, JwtPayload } from "jwt-decode";
-
-interface CustomJwtPayload extends JwtPayload {
-  email?: string;
-  name?: string;
-  picture?: string;
-  provider?: string;
-  nickname?: string;
-  profileImage?: string;
-}
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Loader2 } from "lucide-react";
 
 export default function HomeMain() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
   const { setUser } = useUserStore();
+  const [loading, setLoading] = useState(true);
+  const userState = useUserStore();
+  console.log("userState : ", userState);
 
   useEffect(() => {
-    if (token) {
-      //JWT 토큰을 localStorage에 저장
-      localStorage.setItem("accessToken", token);
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get("http://localhost:8080/api/auth/login", {
+          withCredentials: true, //쿠키자동포함
+        });
+        setUser(res.data);
+      } catch (err) {
+        console.log("로그인 안됨 ", err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      //JWT 해석 및 분해
-      const decoded = jwtDecode<CustomJwtPayload>(token);
+    fetchUser();
+  }, [setUser]);
 
-      console.log("decoded : ", decoded);
-
-      //필요하다면 Zustand에도 사용자 상태 저장하자. (추후 TO-DO)
-      setUser({
-        token,
-        email: decoded.sub || null,
-        name: decoded.name || null,
-        picture: decoded.picture || null,
-        provider: decoded.provider || null,
-        nickname: decoded.nickname || null,
-        profileImage: decoded.profileImage || null,
-      });
-
-      router.replace("/");
-    }
-  }, [token, router, setUser]);
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="w-10 h-10 animate-spin text-gray-500" />
+      </div>
+    );
+  }
 
   return (
     <section className="fixed w-full h-[100%] flex flex-col justify-center mt-20 top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 text-center bg-gradient-to-b from-amber-50 to-white">

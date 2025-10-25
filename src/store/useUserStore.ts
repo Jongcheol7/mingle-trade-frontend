@@ -5,7 +5,6 @@ import { createJSONStorage, persist } from "zustand/middleware";
 export const useUserStore = create<UserStore>()(
   persist(
     (set) => ({
-      token: null,
       email: null,
       name: null,
       picture: null,
@@ -13,10 +12,17 @@ export const useUserStore = create<UserStore>()(
       nickname: null,
       profileImage: null,
 
-      setUser: (data) => set((state) => ({ ...state, ...data })),
+      setUser: (data) =>
+        set(() => ({
+          email: data.email ?? null,
+          name: data.name ?? null,
+          picture: data.picture ?? null,
+          provider: data.provider ?? null,
+          nickname: data.nickname ?? null,
+          profileImage: data.profileImage ?? null,
+        })),
       clearUser: () =>
         set({
-          token: null,
           email: null,
           name: null,
           picture: null,
@@ -26,7 +32,7 @@ export const useUserStore = create<UserStore>()(
         }),
     }),
     {
-      name: "user-storage",
+      name: "mingle-storage",
       storage: createJSONStorage(() => localStorage),
     }
   )

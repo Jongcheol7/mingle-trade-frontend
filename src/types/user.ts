@@ -1,5 +1,4 @@
 export type User = {
-  token: string | null;
   email: string | null;
   name: string | null;
   picture: string | null;

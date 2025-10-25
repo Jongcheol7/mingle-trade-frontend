@@ -7,11 +7,30 @@ import AuthPopup from "../auth/AuthPopup";
 import { AnimatePresence } from "framer-motion";
 import { useUserStore } from "@/store/useUserStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import axios from "axios";
+import { toast } from "sonner";
 
 export default function HeaderMain() {
   const router = useRouter();
   const [authVisible, setAuthVisible] = useState(false);
-  const { nickname, profileImage } = useUserStore();
+  const { nickname, profileImage, clearUser } = useUserStore();
+
+  const handleClickAuth = async () => {
+    if (nickname) {
+      try {
+        await axios.post("http://localhost:8080/api/auth/logout", null, {
+          withCredentials: true, //쿠키포함
+        });
+        clearUser();
+        router.push("/");
+      } catch (err) {
+        toast.error("로그아웃 실패");
+        console.error("로그아웃 실패 : ", err);
+      }
+    } else {
+      setAuthVisible(true);
+    }
+  };
 
   return (
     <div className="flex items-center justify-between mb-8">
@@ -39,7 +58,7 @@ export default function HeaderMain() {
         </div>
         <button
           className="font-bold text-xl cursor-pointer"
-          onClick={() => setAuthVisible(true)}
+          onClick={handleClickAuth}
         >
           {nickname ? "Logout" : "Login"}
         </button>
