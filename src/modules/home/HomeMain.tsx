@@ -3,6 +3,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function HomeMain() {
   const { setUser } = useUserStore();
@@ -18,7 +19,7 @@ export default function HomeMain() {
         });
         setUser(res.data);
       } catch (err) {
-        console.log("로그인 안됨 ", err);
+        toast.error("로그인실패 " + err);
       } finally {
         setLoading(false);
       }

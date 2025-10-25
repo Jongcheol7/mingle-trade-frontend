@@ -13,13 +13,15 @@ export const useUserStore = create<UserStore>()(
       profileImage: null,
 
       setUser: (data) =>
-        set(() => ({
-          email: data.email ?? null,
-          name: data.name ?? null,
-          picture: data.picture ?? null,
-          provider: data.provider ?? null,
-          nickname: data.nickname ?? null,
-          profileImage: data.profileImage ?? null,
+        set((state) => ({
+          ...state,
+          //넘어온 값이 있을 때만 덮어쓰기 (undefined면 기존값 유지)
+          email: data.email ?? state.email,
+          name: data.name ?? state.name,
+          picture: data.picture ?? state.picture,
+          provider: data.provider ?? state.provider,
+          nickname: data.nickname ?? state.nickname,
+          profileImage: data.profileImage ?? state.profileImage,
         })),
       clearUser: () =>
         set({
