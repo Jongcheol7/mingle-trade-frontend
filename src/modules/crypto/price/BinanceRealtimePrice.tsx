@@ -5,7 +5,6 @@ import { BinanceStreamTicker, CoinInfo } from "@/types/coin";
 import SearchComponent from "@/modules/common/SearchComponent";
 import { formatVolume } from "./formatVolume";
 import BinanceRealTimeLabel from "./BinanceRealtimeLabel";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {

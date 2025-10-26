@@ -153,7 +153,16 @@ export default function UpbitRealtimePrice() {
           </BinanceRealTimeLabel>
         </li>
         {coinInfo
-          .filter((coin) => keyword === "" || coin.symbol.includes(keyword))
+          .filter((coin) => {
+            const matchedCoin = upbitCoinParis.find(
+              (upbitPair) => upbitPair.market === coin.symbol
+            );
+            return (
+              keyword === "" ||
+              coin.symbol.includes(keyword) ||
+              matchedCoin?.korean_name.includes(keyword)
+            );
+          })
           .map((coin) => {
             const matchedCoin = upbitCoinParis.find(
               (upbitPair) => upbitPair.market === coin.symbol
