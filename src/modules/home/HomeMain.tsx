@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function HomeMain() {
-  const { setUser } = useUserStore();
+  const { setUser, clearUser } = useUserStore();
   const [loading, setLoading] = useState(true);
   const userState = useUserStore();
   console.log("userState : ", userState);
@@ -20,13 +20,14 @@ export default function HomeMain() {
         setUser(res.data);
       } catch (err) {
         toast.error("로그인실패 " + err);
+        clearUser();
       } finally {
         setLoading(false);
       }
     };
 
     fetchUser();
-  }, [setUser]);
+  }, [setUser, clearUser]);
 
   if (loading) {
     return (
