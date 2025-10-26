@@ -7,6 +7,15 @@ import { formatVolume } from "./formatVolume";
 import BinanceRealTimeLabel from "./BinanceRealtimeLabel";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCryptoMarketStore } from "@/store/useCryptoMarketStore";
 
 const today = new Date();
 const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
@@ -26,6 +35,7 @@ export default function BinanceRealtimePrice() {
   >("volume");
   const [sortOrder, setSortOrder] = useState("asc");
   const router = useRouter();
+  const { market, setMarket } = useCryptoMarketStore();
 
   useEffect(() => {
     const getPrevCloseInfo = async () => {
@@ -107,17 +117,29 @@ export default function BinanceRealtimePrice() {
   }, [prevCloseInfo, sortKey, sortOrder]);
 
   return (
-    <div className="p-4 relative w-[370px] rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
+    <div className="p-4 relative w-[600px] rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
       <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold">
-          📈 실시간 USDT 시세 <span className="text-sm">binance 09:00기준</span>
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold">📈 실시간 USDT 시세</h1>
+          <Select
+            onValueChange={(value: "Upbit" | "Binance") => setMarket(value)}
+          >
+            <SelectTrigger className="w-[100px]">
+              <SelectValue placeholder={market} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Upbit">Upbit</SelectItem>
+              <SelectItem value="Binance">Binance</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="text-sm">09:00기준</span>
+        </div>
         <SearchComponent setKeyword={setKeyword} />
       </div>
       <ul className="min-h-[350px] max-h-[450px] overflow-auto text-sm scrollbar-none">
         <li
           className={
-            "sticky grid grid-cols-[100px_80px_70px_80px] py-1 font-bold text-[14px]"
+            "sticky grid grid-cols-[130px_100px_70px_80px] py-1 font-bold text-[14px]"
           }
         >
           <span className="">자산명</span>
@@ -157,19 +179,17 @@ export default function BinanceRealtimePrice() {
           .map((coin) => (
             <li
               key={coin.symbol}
-              className={`grid grid-cols-[100px_80px_70px_80px] py-1 border-b border-gray-300`}
+              className={`grid grid-cols-[130px_100px_70px_80px] py-1 border-b border-gray-300`}
             >
               <div className="flex items-center gap-2">
-                <Image
-                  src={coin.logoUrl} // ✅ logoUrl DB에서 받은 값
-                  alt={""}
-                  width={20}
-                  height={20}
-                  className="rounded-full"
-                  unoptimized // ✅ CDN 이미지 최적화 없이 바로 로드 (빠름)
-                />
+                <Avatar className=" w-6 h-6 border-1 border-white shadow-md">
+                  <AvatarImage src={coin.logoUrl || "/default_profile.png"} />
+                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-amber-300 to-yellow-400 text-white">
+                    {""}
+                  </AvatarFallback>
+                </Avatar>
                 <span
-                  className="text-left text-[16px] font-bold cursor-pointer"
+                  className="text-left text-[16px] font-bold cursor-pointer line-clamp-1"
                   onClick={() => router.push(`/crypto/chart/${coin.symbol}`)}
                 >
                   {coin.symbol}
@@ -186,7 +206,7 @@ export default function BinanceRealtimePrice() {
                 {coin.rate.toFixed(2)}%
               </span>
               <span className="text-right text-[16px] font-bold">
-                {formatVolume(coin.volume)}
+                {formatVolume(coin.volume ? coin.volume : 0)}
               </span>
             </li>
           ))}
