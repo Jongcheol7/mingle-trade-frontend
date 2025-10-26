@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCryptoMarketStore } from "@/store/useCryptoMarketStore";
+import { Loader2 } from "lucide-react";
 
 export default function UpbitRealtimePrice() {
   // const [prevCloseInfo, setPrevCloseInfo] = useState([]);
@@ -95,14 +96,14 @@ export default function UpbitRealtimePrice() {
   };
 
   return (
-    <div className="p-4 relative w-[600px] rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
+    <div className="p-4 relative  rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">📈 실시간 KRW 시세</h1>
           <Select
             onValueChange={(value: "Upbit" | "Binance") => setMarket(value)}
           >
-            <SelectTrigger className="w-[100px]">
+            <SelectTrigger className="w-[110px] text-black font-bold">
               <SelectValue placeholder={market} />
             </SelectTrigger>
             <SelectContent>
@@ -114,7 +115,7 @@ export default function UpbitRealtimePrice() {
         </div>
         <SearchComponent setKeyword={setKeyword} />
       </div>
-      <ul className="min-h-[350px] max-h-[450px] overflow-auto text-sm scrollbar-none">
+      <ul className="relative min-h-[350px] max-h-[450px] overflow-auto text-sm scrollbar-none">
         <li
           className={
             "sticky grid grid-cols-[130px_100px_70px_80px] py-1 font-bold text-[14px]"
@@ -152,57 +153,65 @@ export default function UpbitRealtimePrice() {
             거래량
           </BinanceRealTimeLabel>
         </li>
-        {coinInfo
-          .filter((coin) => {
-            const matchedCoin = upbitCoinParis.find(
-              (upbitPair) => upbitPair.market === coin.symbol
-            );
-            return (
-              keyword === "" ||
-              coin.symbol.includes(keyword) ||
-              matchedCoin?.korean_name.includes(keyword)
-            );
-          })
-          .map((coin) => {
-            const matchedCoin = upbitCoinParis.find(
-              (upbitPair) => upbitPair.market === coin.symbol
-            );
-            const logoUrl = getLogoUrl(coin.symbol);
-            return (
-              <li
-                key={coin.symbol}
-                className={`grid grid-cols-[130px_100px_70px_80px] py-1 border-b border-gray-300`}
-              >
-                <div className="flex items-center gap-2">
-                  <Avatar className=" w-6 h-6 border-1 border-white shadow-md">
-                    <AvatarImage src={logoUrl || "/default_profile.png"} />
-                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-amber-300 to-yellow-400 text-white">
-                      {""}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span
-                    className="text-left text-[16px] font-bold cursor-pointer line-clamp-1"
-                    onClick={() => router.push(`/crypto/chart/${coin.symbol}`)}
-                  >
-                    {matchedCoin ? matchedCoin.korean_name : coin.symbol}
-                  </span>
-                </div>
-                <span className="text-right text-[16px] font-bold">
-                  {coin.price ? coin.price.toFixed(1) : ""}
-                </span>
-                <span
-                  className={`text-right text-[16px] ${
-                    coin.rate >= 0 ? "text-green-500" : "text-red-500"
-                  }`}
+        {coinInfo.length > 0 ? (
+          coinInfo
+            .filter((coin) => {
+              const matchedCoin = upbitCoinParis.find(
+                (upbitPair) => upbitPair.market === coin.symbol
+              );
+              return (
+                keyword === "" ||
+                coin.symbol.includes(keyword) ||
+                matchedCoin?.korean_name.includes(keyword)
+              );
+            })
+            .map((coin) => {
+              const matchedCoin = upbitCoinParis.find(
+                (upbitPair) => upbitPair.market === coin.symbol
+              );
+              const logoUrl = getLogoUrl(coin.symbol);
+              return (
+                <li
+                  key={coin.symbol}
+                  className={`grid grid-cols-[130px_100px_70px_80px] py-1 border-b border-gray-300`}
                 >
-                  {(coin.rate * 100).toFixed(2)}%
-                </span>
-                <span className="text-right text-[16px] font-bold">
-                  {formatVolume(coin.volume ? coin.volume : 0)}
-                </span>
-              </li>
-            );
-          })}
+                  <div className="flex items-center gap-2">
+                    <Avatar className=" w-6 h-6 border-1 border-white shadow-md">
+                      <AvatarImage src={logoUrl || "/default_profile.png"} />
+                      <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-amber-300 to-yellow-400 text-white">
+                        {""}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span
+                      className="text-left text-[16px] font-bold cursor-pointer line-clamp-1"
+                      onClick={() =>
+                        router.push(
+                          `/crypto/chart/${coin.symbol.replace(/KRW-/, "")}`
+                        )
+                      }
+                    >
+                      {matchedCoin ? matchedCoin.korean_name : coin.symbol}
+                    </span>
+                  </div>
+                  <span className="text-right text-[16px] font-bold">
+                    {coin.price ? coin.price.toFixed(1) : ""}
+                  </span>
+                  <span
+                    className={`text-right text-[16px] ${
+                      coin.rate >= 0 ? "text-green-500" : "text-red-500"
+                    }`}
+                  >
+                    {(coin.rate * 100).toFixed(2)}%
+                  </span>
+                  <span className="text-right text-[16px] font-bold">
+                    {formatVolume(coin.volume ? coin.volume : 0)}
+                  </span>
+                </li>
+              );
+            })
+        ) : (
+          <Loader2 className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 animate-spin text-gray-500" />
+        )}
       </ul>
     </div>
   );

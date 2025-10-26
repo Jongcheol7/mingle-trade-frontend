@@ -80,7 +80,10 @@ export default function FreeBoardForm({ id }: Props) {
               저장
             </Button>
             <Button
-              onClick={router.back}
+              onClick={(e) => {
+                e.preventDefault();
+                router.back();
+              }}
               variant={"destructive"}
               className="cursor-pointer"
             >

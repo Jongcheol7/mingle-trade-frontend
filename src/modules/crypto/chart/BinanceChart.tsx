@@ -5,6 +5,7 @@ import { createChart } from "lightweight-charts";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { tickLists } from "./TickLists";
+import Link from "next/link";
 
 type Props = {
   symbol: string;
@@ -97,21 +98,29 @@ export default function BinanceChart({ symbol }: Props) {
     <div className="w-full mx-auto">
       <Card className="border borde-gray-200 p-0">
         <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="font-bold text-2xl mt-2">{symbol}</div>
-            <div className="flex gap-1 cursor-pointer mt-2">
-              {tickLists.map((t) => (
-                <div
-                  key={t}
-                  className={`p-1 border rounded-md ${
-                    tick === t ? "bg-black text-white" : ""
-                  }`}
-                  onClick={() => setTick(t)}
-                >
-                  {t}
-                </div>
-              ))}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="font-bold text-2xl mt-2">{symbol}</div>
+              <div className="flex gap-1 cursor-pointer mt-2">
+                {tickLists.map((t) => (
+                  <div
+                    key={t}
+                    className={`p-1 border rounded-md ${
+                      tick === t ? "bg-black text-white" : ""
+                    }`}
+                    onClick={() => setTick(t)}
+                  >
+                    {t}
+                  </div>
+                ))}
+              </div>
             </div>
+            <Link
+              className="py-2 px-2 mt-2 rounded-md border bg-black text-white font-bold cursor-pointer"
+              href={`/crypto/info/${symbol}`}
+            >
+              코인정보
+            </Link>
           </div>
         </CardHeader>
         <CardContent className="p-0">
