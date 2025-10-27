@@ -1,258 +1,160 @@
-/**
- * This configuration was generated using the CKEditor 5 Builder. You can modify it anytime using this link:
- * https://ckeditor.com/ckeditor-5/builder/#installation/NoNgNARATAdA7PCkAsBmVAGEy6u5kXATgEYoS8QjkyMS4pkAOEJpzZJCAUwDskMYYCTCDBI8QF1ImJgFZuqAEYRJQA==
- */
 "use client";
-import { useState, useEffect, useRef, useMemo } from "react";
-import { CKEditor } from "@ckeditor/ckeditor5-react";
-import {
-  ClassicEditor,
-  Autosave,
-  Essentials,
-  Paragraph,
-  Autoformat,
-  ImageInsertViaUrl,
-  ImageBlock,
-  ImageToolbar,
-  AutoImage,
-  BlockQuote,
-  Bold,
-  CloudServices,
-  Link,
-  ImageUpload,
-  Heading,
-  ImageCaption,
-  ImageInline,
-  ImageStyle,
-  ImageTextAlternative,
-  Indent,
-  IndentBlock,
-  Italic,
-  LinkImage,
-  List,
-  MediaEmbed,
-  Table,
-  TableToolbar,
-  TableCaption,
-  TextTransformation,
-  TodoList,
-  Underline,
-  Emoji,
-  Mention,
-  Markdown,
-  EditorConfig,
-} from "ckeditor5";
 
-import "ckeditor5/ckeditor5.css";
-/**
- * Create a free account with a trial: https://portal.ckeditor.com/checkout?plan=free
- */
-const LICENSE_KEY = "GPL"; // or <YOUR_LICENSE_KEY>.
+import { EditorContent, useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import { useEffect, useRef } from "react";
+import DOMPurify from "isomorphic-dompurify";
+import { ResizableImage } from "./ResizableImage";
+import { toast } from "sonner";
+import { Color, FontSize, TextStyle } from "@tiptap/extension-text-style";
+import TextAlign from "@tiptap/extension-text-align";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import NoteToolbar from "./NoteToolbar";
+import imageCompression from "browser-image-compression";
+import DeleteFromS3 from "./DeleteFromS3";
 
-type EditorProps = {
-  onChange?: (data: string) => void;
-  readOnly?: boolean;
-  content?: string;
-};
+export default function Editor({ setEditor, content, readOnly }: EditorType) {
+  const safeHTML = DOMPurify.sanitize(content); // content 안에 <img src="data:..." />가 포함됨
+  const prevImgsRef = useRef<string[]>([]);
 
-export default function Editor({
-  onChange,
-  readOnly = false,
-  content = "",
-}: EditorProps) {
-  const editorContainerRef = useRef(null);
-  const editorRef = useRef(null);
-  const [isLayoutReady, setIsLayoutReady] = useState(false);
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        //history: false, // ✅ undo/redo 자체를 끔
+        codeBlock: false, // 기본 codeBlock 비활성화 (Lowlight로 대체)
+      }),
+      Placeholder.configure({
+        placeholder: "여기에 메모를 입력하세요...",
+      }),
+      ResizableImage,
+      TextStyle,
+      Color,
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+      FontSize.configure({
+        types: ["textStyle"],
+      }),
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
+    ],
+    immediatelyRender: false,
+    content: "",
+    editable: !readOnly,
+    autofocus: false,
+    async onUpdate({ editor }) {
+      const html = editor.getHTML();
+
+      const currentImgs = [
+        ...html.matchAll(/<img[^>]+src="([^"]+)"[^>]*>/g),
+      ].map((m) => m[1]);
+      console.log("currentImgs :", currentImgs);
+
+      // 2. 직전 이미지 리스트와 비교해서 삭제된 이미지가 있는지 확인
+      const deletedImgs = prevImgsRef.current.filter(
+        (src) => !currentImgs.includes(src)
+      );
+      // 추가된 이미지를 판별하자.
+      const addedImgs = currentImgs.filter(
+        (src) => !prevImgsRef.current.includes(src)
+      );
+
+      console.log("deletedImgs :", deletedImgs);
+      // 3. 삭제된 이미지가 CloudFront라면 S3 삭제 요청
+      deletedImgs.forEach(async (src: string) => {
+        if (src.startsWith(process.env.NEXT_PUBLIC_CLOUDFRONT_DOMAIN ?? "")) {
+          console.log("삭제 실행 전");
+          DeleteFromS3(src);
+        }
+      });
+
+      // 4. 현재 이미지 리스트를 저장
+      prevImgsRef.current = currentImgs;
+
+      // 새로 들어온 base64 이미지만 압축
+      for (let i = 0; i < addedImgs.length; i++) {
+        if (
+          addedImgs[i].startsWith("data:") &&
+          !addedImgs[i].includes("compressed")
+        ) {
+          try {
+            // addedImgs[i] : base64
+            // base64 -> base -> file (압축을 위해)
+            const res = await fetch(addedImgs[i]);
+            const blob = await res.blob();
+            const file = new File([blob], `image${i}.jpeg`, {
+              type: blob.type,
+            });
+            // 압축 옵션
+            const compressionOption = {
+              maxSizeMB: 2,
+              maxWidthOrHeight: 1024,
+              useWebWorker: true,
+            };
+            const compressed = await imageCompression(file, compressionOption);
+            // File -> base64 문자열로 다시 바꾸기.
+            const compressedUrl = URL.createObjectURL(compressed);
+            const newHtml = html.replace(
+              addedImgs[i],
+              `${compressedUrl}" data-compressed="true`
+            );
+            editor.commands.setContent(newHtml, { emitUpdate: false });
+
+            const replacedImgs = [
+              ...newHtml.matchAll(/<img[^>]+src="([^"]+)"[^>]*>/g),
+            ].map((m) => m[1]);
+            prevImgsRef.current = replacedImgs;
+          } catch (err) {
+            console.error("이미지 압축 실패 :", err);
+            toast.error("이미지 압축 중 오류가 발생했습니다.");
+          }
+        }
+      }
+    },
+  });
 
   useEffect(() => {
-    setIsLayoutReady(true);
+    if (editor && setEditor) {
+      setEditor(editor);
 
-    return () => setIsLayoutReady(false);
-  }, []);
+      // ✅ content 안의 base64 <img>를 커스텀 노드로 처리
+      Promise.resolve().then(() => {
+        editor.commands.setContent(safeHTML);
+      });
 
-  const { editorConfig } = useMemo(() => {
-    if (!isLayoutReady) {
-      return {};
+      const initImgs = [
+        ...safeHTML.matchAll(/src="([^"]+\.(jpeg|jpg|png|webp|gif))"/gi),
+      ].map((m) => m[1]);
+      prevImgsRef.current = initImgs;
     }
+  }, [editor, setEditor, safeHTML]);
 
-    return {
-      editorConfig: {
-        toolbar: {
-          items: [
-            "undo",
-            "redo",
-            "|",
-            "heading",
-            "|",
-            "bold",
-            "italic",
-            "underline",
-            "|",
-            "emoji",
-            "link",
-            "mediaEmbed",
-            "insertTable",
-            "blockQuote",
-            "|",
-            "bulletedList",
-            "numberedList",
-            "todoList",
-            "outdent",
-            "indent",
-          ],
-          shouldNotGroupWhenFull: false,
-        },
-        plugins: [
-          Autoformat,
-          AutoImage,
-          Autosave,
-          BlockQuote,
-          Bold,
-          CloudServices,
-          Emoji,
-          Essentials,
-          Heading,
-          ImageBlock,
-          ImageCaption,
-          ImageInline,
-          ImageInsertViaUrl,
-          ImageStyle,
-          ImageTextAlternative,
-          ImageToolbar,
-          ImageUpload,
-          Indent,
-          IndentBlock,
-          Italic,
-          Link,
-          LinkImage,
-          List,
-          Markdown,
-          MediaEmbed,
-          Mention,
-          Paragraph,
-          Table,
-          TableCaption,
-          TableToolbar,
-          TextTransformation,
-          TodoList,
-          Underline,
-        ],
-        heading: {
-          options: [
-            {
-              model: "paragraph",
-              title: "Paragraph",
-              class: "ck-heading_paragraph",
-            },
-            {
-              model: "heading1",
-              view: "h1",
-              title: "Heading 1",
-              class: "ck-heading_heading1",
-            },
-            {
-              model: "heading2",
-              view: "h2",
-              title: "Heading 2",
-              class: "ck-heading_heading2",
-            },
-            {
-              model: "heading3",
-              view: "h3",
-              title: "Heading 3",
-              class: "ck-heading_heading3",
-            },
-            {
-              model: "heading4",
-              view: "h4",
-              title: "Heading 4",
-              class: "ck-heading_heading4",
-            },
-            {
-              model: "heading5",
-              view: "h5",
-              title: "Heading 5",
-              class: "ck-heading_heading5",
-            },
-            {
-              model: "heading6",
-              view: "h6",
-              title: "Heading 6",
-              class: "ck-heading_heading6",
-            },
-          ],
-        },
-        image: {
-          toolbar: [
-            "toggleImageCaption",
-            "imageTextAlternative",
-            "|",
-            "imageStyle:inline",
-            "imageStyle:wrapText",
-            "imageStyle:breakText",
-          ],
-        },
-        initialData: content || "",
-        licenseKey: LICENSE_KEY,
-        link: {
-          addTargetToExternalLinks: true,
-          defaultProtocol: "https://",
-          decorators: {
-            toggleDownloadable: {
-              mode: "manual",
-              label: "Downloadable",
-              attributes: {
-                download: "file",
-              },
-            },
-          },
-        },
-        mention: {
-          feeds: [
-            {
-              marker: "@",
-              feed: [
-                /* See: https://ckeditor.com/docs/ckeditor5/latest/features/mentions.html */
-              ],
-            },
-          ],
-        },
-        placeholder: "Type or paste your content here!",
-        table: {
-          contentToolbar: ["tableColumn", "tableRow", "mergeTableCells"],
-        },
-      } as EditorConfig,
-    };
-  }, [isLayoutReady, content]);
+  if (!editor) return null;
 
+  console.log("editor.getHTML(); :", editor.getHTML());
   return (
-    <div className="main-container">
-      <div
-        className="editor-container editor-container_classic-editor"
-        ref={editorContainerRef}
-      >
-        <div className="editor-container__editor">
-          <div ref={editorRef}>
-            {editorConfig && (
-              <CKEditor
-                editor={ClassicEditor}
-                config={editorConfig as EditorConfig}
-                onReady={(editor) => {
-                  if (readOnly) {
-                    editor.enableReadOnlyMode("read-only-mode");
-                  } else {
-                    editor.disableReadOnlyMode("read-only-mode");
-                  }
-                }}
-                onChange={(event, editor) => {
-                  const data = editor.getData();
-                  if (onChange) onChange(data);
-                }}
-              />
-            )}
-          </div>
+    <div>
+      <EditorContent
+        editor={editor}
+        className={`tiptap w-full overflow-y-auto scrollbar-none my-2 ${
+          readOnly ? "h-full" : "max-h-[415px]"
+        }`}
+        onKeyDown={(e) => {
+          if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "y")) {
+            e.preventDefault();
+            toast.error("컨트롤z 혹은 y는 사용 불가합니다.");
+          }
+        }}
+      />
+      {!readOnly && (
+        <div className="">
+          <NoteToolbar editor={editor} />
         </div>
-      </div>
+      )}
     </div>
   );
 }

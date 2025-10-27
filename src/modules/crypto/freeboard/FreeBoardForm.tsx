@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   useFreeBoardDetails,
@@ -13,6 +14,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { type Editor as TiptapEditor } from "@tiptap/react";
+import FileToS3 from "@/modules/common/FileToS3";
+import axios from "axios";
 
 type Props = {
   id: number;
@@ -21,11 +25,11 @@ type Props = {
 export default function FreeBoardForm({ id }: Props) {
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
-  const { register, setValue, handleSubmit, setFocus, reset } =
-    useForm<FreeBoard>();
+  const { register, handleSubmit, setFocus, reset } = useForm<FreeBoard>();
   const { mutate: saveMutate } = useFreeBoardSave();
   const { nickname, email } = useUserStore();
   const { data, isFetching, isLoading } = useFreeBoardDetails(id);
+  const [editor, setEditor] = useState<TiptapEditor | null>(null);
 
   useEffect(() => {
     setHydrated(true);
@@ -52,51 +56,107 @@ export default function FreeBoardForm({ id }: Props) {
     );
   }
 
-  const handleSave = (val: FreeBoard) => {
+  const handleSave = async (val: FreeBoard) => {
     if (!val.title) {
       toast.error("제목을 입력하세요.");
       setFocus("title");
       return false;
     }
-    if (val.content.trim() === "") {
+    const html = editor?.getHTML();
+    if (!html || html?.trim() === "") {
       toast.error("내용을 입력하세요.");
       setFocus("content");
       return false;
     }
+
     val.id = id;
     val.writer = nickname!;
     val.email = email!;
+    val.content = html;
+
+    //이미지들을 추출해서 S3에 저장하기 위해 presigned-url 발급
+    const matches = [
+      ...html.matchAll(/<img[^>]+src="(data:image\/[^"]+|blob:[^"]+)"[^>]*>/g),
+    ];
+    let uploadHTML = html;
+    console.log("html : ", html);
+    console.log("matches : ", matches);
+
+    for (let i = 0; i < matches.length; i++) {
+      const fullTag = matches[i][0];
+      const base64 = matches[i][1];
+
+      //base64 -> blob -> File 변환
+      const res = await fetch(base64);
+      const blob = await res.blob();
+      const file = new File([blob], `image${i}.jpeg`, { type: blob.type });
+
+      try {
+        const url = await FileToS3(file, "freeboard");
+        const uploadRes = await axios.put(url, file, {
+          headers: {
+            "Content-Type": file.type,
+          },
+        });
+
+        console.log("uploadRes : ", uploadRes);
+
+        if (uploadRes.status !== 200 && uploadRes.status !== 204) {
+          throw new Error("S3 업로드 실패");
+        }
+
+        const fileUrl = url
+          .split("?")[0]
+          .replace(
+            process.env.NEXT_PUBLIC_S3_BASE_URL,
+            process.env.NEXT_PUBLIC_CLOUDFRONT_DOMAIN
+          );
+
+        //스타일 속성 유지하기
+        const styleMatch = fullTag.match(/style="([^"]*)"/);
+        const styleAttr = styleMatch ? ` style="${styleMatch[1]}"` : "";
+        // base64 태그 → 실제 S3 URL로 바꾸기 (해당 <img> 전체 태그 교체)
+        const s3ImgTag = `<img src="${fileUrl}"${styleAttr} />`;
+        uploadHTML = uploadHTML.replace(fullTag, s3ImgTag);
+        val.content = uploadHTML;
+      } catch (err) {
+        console.error("이미지 S3 업로드 실패:", err);
+        toast.error("이미지 S3 업로드 실패: " + err);
+      }
+    }
+
     saveMutate(val);
     router.push("/crypto/freeboard");
   };
 
   return (
-    <div className="flex justify-center w-full items-center">
+    <Card>
       <form onSubmit={handleSubmit(handleSave)}>
-        <div className="flex flex-col gap-2 max-w-[795px]">
-          <div className="flex gap-2">
-            <Input type="text" {...register("title")} />
-            <Button variant={"secondary"} className="cursor-pointer">
-              저장
-            </Button>
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                router.back();
-              }}
-              variant={"destructive"}
-              className="cursor-pointer"
-            >
-              취소
-            </Button>
-          </div>
-          <input type="hidden" {...register("content")} />
+        <CardHeader className="flex gap-2">
+          <Input type="text" {...register("title")} />
+          <Button variant={"secondary"} className="cursor-pointer">
+            저장
+          </Button>
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              router.back();
+            }}
+            variant={"destructive"}
+            className="cursor-pointer"
+          >
+            취소
+          </Button>
+        </CardHeader>
+
+        <CardContent>
           <Editor
-            onChange={(data) => setValue("content", data)}
-            content={data?.content || ""}
+            setEditor={setEditor}
+            content={data?.content ?? ""}
+            readOnly={false}
           />
-        </div>
+        </CardContent>
       </form>
-    </div>
+    </Card>
   );
 }

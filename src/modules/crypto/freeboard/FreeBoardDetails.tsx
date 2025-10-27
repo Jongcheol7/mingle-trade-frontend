@@ -1,11 +1,13 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useFreeBoardDetails } from "@/hooks/crypto/freeboard/useFreeBoardReactQuery";
 import Editor from "@/modules/common/Editor";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { Editor as TiptapEditor } from "@tiptap/react";
 
 type Props = {
   id: number;
@@ -15,6 +17,7 @@ export default function FreeBoardDetails({ id }: Props) {
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const { data, isFetching, isLoading } = useFreeBoardDetails(id);
+  const [editor, setEditor] = useState<TiptapEditor | null>(null);
 
   useEffect(() => {
     setHydrated(true);
@@ -35,27 +38,32 @@ export default function FreeBoardDetails({ id }: Props) {
   console.log("ddd : ", data);
 
   return (
-    <div className="flex justify-center w-full items-center">
-      <div className="flex flex-col gap-2 max-w-[795px]">
-        <div className="flex gap-2">
-          <Input type="text" value={data.title} readOnly />
-          <Button
-            className=" cursor-pointer"
-            variant={"secondary"}
-            onClick={() => router.push(`/crypto/freeboard/write/${data.id}`)}
-          >
-            수정
-          </Button>
-          <Button
-            className=" cursor-pointer"
-            onClick={router.back}
-            variant={"destructive"}
-          >
-            뒤로가기
-          </Button>
-        </div>
-        <Editor readOnly={true} content={data.content} />
-      </div>
-    </div>
+    <Card className="h-full">
+      <CardHeader className="flex gap-2">
+        <Input type="text" value={data.title} readOnly />
+        <Button
+          className=" cursor-pointer"
+          variant={"secondary"}
+          onClick={() => router.push(`/crypto/freeboard/write/${data.id}`)}
+        >
+          수정
+        </Button>
+        <Button
+          className=" cursor-pointer"
+          onClick={router.back}
+          variant={"destructive"}
+        >
+          뒤로가기
+        </Button>
+      </CardHeader>
+
+      <CardContent>
+        <Editor
+          setEditor={setEditor}
+          content={data?.content ?? ""}
+          readOnly={true}
+        />
+      </CardContent>
+    </Card>
   );
 }

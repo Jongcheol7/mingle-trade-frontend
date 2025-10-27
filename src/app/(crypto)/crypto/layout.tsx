@@ -12,7 +12,7 @@ export default function Layout({ children }: LayoutProp) {
       <CryptoNav />
       <div className="flex gap-3">
         {market === "Upbit" ? <UpbitRealtimePrice /> : <BinanceRealtimePrice />}
-        {children}
+        <div className="flex-1">{children}</div>
       </div>
     </div>
   );

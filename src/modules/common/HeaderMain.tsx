@@ -39,7 +39,7 @@ export default function HeaderMain() {
         onClick={() => router.push("/")}
       >
         <Image src={"/mingle_logo.png"} alt="로고" width={50} height={50} />
-        <h1 className="font-bold text-2xl">Mingle Trade</h1>
+        <h1 className="font-bold text-2xl">MingleTrade</h1>
       </div>
       <div className="flex gap-3 absolute left-1/2 -translate-x-1/2">
         <NavLink href={"/crypto"}>Crypto</NavLink>

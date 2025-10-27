@@ -14,13 +14,10 @@ import imageCompression from "browser-image-compression";
 
 export default function MyPageMain() {
   const [hydrated, setHydrated] = useState(false);
-  const { nickname, profileImage, setUser, email } = useUserStore();
+  const { nickname, profileImage, email, setUser, clearUser } = useUserStore();
   const [newNickname, setNewNickname] = useState(nickname ?? "");
   const router = useRouter();
-  const { clearUser } = useUserStore();
   const imageRef = useRef<HTMLInputElement>(null);
-
-  console.log("profileImage", profileImage);
 
   useEffect(() => setHydrated(true), []);
   if (!hydrated) return null;

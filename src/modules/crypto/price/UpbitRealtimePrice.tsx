@@ -17,7 +17,6 @@ import { useCryptoMarketStore } from "@/store/useCryptoMarketStore";
 import { Loader2 } from "lucide-react";
 
 export default function UpbitRealtimePrice() {
-  // const [prevCloseInfo, setPrevCloseInfo] = useState([]);
   const [upbitCoinParis, setUpbitCoinParis] = useState<UpbitCoinPairs[]>([]);
   const [coinInfo, setCoinInfo] = useState<CoinInfo[]>([]);
   const [keyword, setKeyword] = useState("");
@@ -34,10 +33,6 @@ export default function UpbitRealtimePrice() {
       const res = await fetch("https://api.upbit.com/v1/market/all");
       const data = await res.json();
       setUpbitCoinParis(
-        data.filter((m: UpbitCoinPairs) => m.market.startsWith("KRW-"))
-      );
-      console.log(
-        "upbitCoinParis : ",
         data.filter((m: UpbitCoinPairs) => m.market.startsWith("KRW-"))
       );
     };
@@ -61,9 +56,9 @@ export default function UpbitRealtimePrice() {
     ws.onmessage = async (event) => {
       const text = await event.data.text();
       const ticker = JSON.parse(text);
-      //console.log("실시간 데이터 : ", ticker);
 
       latestPrices.set(ticker.code, ticker);
+      //console.log("latestPrices : ", latestPrices);
       const latestPricesList = Array.from(latestPrices.values());
       const coinInfoList: CoinInfo[] = latestPricesList.map((a) => ({
         symbol: a.code,
