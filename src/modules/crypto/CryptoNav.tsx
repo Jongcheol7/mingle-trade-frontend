@@ -10,6 +10,7 @@ export default function CryptoNav() {
     { name: "코인뉴스", href: "/crypto/news" },
     { name: "자유게시판", href: "/crypto/freeboard" },
     { name: "차트", href: "/crypto/chart" },
+    { name: "포트폴리오", href: "/crypto/portfolio" },
   ];
 
   return (

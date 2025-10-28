@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useUserStore } from "@/store/useUserStore";
 import axios from "axios";
 import { Settings } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import FileToS3 from "../common/FileToS3";
@@ -21,6 +21,11 @@ export default function MyPageMain() {
 
   useEffect(() => setHydrated(true), []);
   if (!hydrated) return null;
+
+  if (!email) {
+    toast.success("로그인 후 이용 가능합니다.");
+    redirect("/");
+  }
 
   const handleNicknameChange = async () => {
     try {
@@ -157,7 +162,7 @@ export default function MyPageMain() {
           {/* 로그아웃 버튼 */}
           <div className="flex justify-center mt-4">
             <button
-              className="px-5 py-2 border border-gray-300 rounded-md text-gray-600 hover:bg-gray-100 transition-all duration-200"
+              className="px-5 py-2 border bg-gray-100 font-bold border-gray-300 rounded-md text-gray-600 hover:bg-gray-200 transition-all duration-200 cursor-pointer"
               onClick={handleLogout}
             >
               로그아웃
