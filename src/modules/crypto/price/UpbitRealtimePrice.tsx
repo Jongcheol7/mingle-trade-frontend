@@ -83,13 +83,6 @@ export default function UpbitRealtimePrice() {
     return () => ws.close();
   }, [upbitCoinParis, sortKey, sortOrder]);
 
-  //글로벌 공용 코인 로고 URL (cryptologos or cryptoicons)
-  const getLogoUrl = (code: string) => {
-    if (!code) return "/default-coin.png";
-    const symbol = code.replace("KRW-", "").toLowerCase();
-    return `https://assets.coincap.io/assets/icons/${symbol}@2x.png`;
-  };
-
   return (
     <div className="p-4 relative  rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
       <div className="flex flex-col gap-1">
@@ -164,7 +157,6 @@ export default function UpbitRealtimePrice() {
               const matchedCoin = upbitCoinParis.find(
                 (upbitPair) => upbitPair.market === coin.symbol
               );
-              const logoUrl = getLogoUrl(coin.symbol);
               return (
                 <li
                   key={coin.symbol}
@@ -172,7 +164,12 @@ export default function UpbitRealtimePrice() {
                 >
                   <div className="flex items-center gap-2">
                     <Avatar className=" w-6 h-6 border-1 border-white shadow-md">
-                      <AvatarImage src={logoUrl || "/default_profile.png"} />
+                      <AvatarImage
+                        src={`https://static.upbit.com/logos/${coin.symbol.replace(
+                          /KRW-/,
+                          ""
+                        )}.png`}
+                      />
                       <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-amber-300 to-yellow-400 text-white">
                         {""}
                       </AvatarFallback>

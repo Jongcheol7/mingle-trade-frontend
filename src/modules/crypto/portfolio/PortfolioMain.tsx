@@ -5,19 +5,33 @@ import { portfolio } from "@/types/portfolio";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import PortfolioDetail from "./PortfolioDetail";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCryptoMarketStore } from "@/store/useCryptoMarketStore";
 
 export default function PortfolioMain() {
   const { email } = useUserStore();
   const [portfolio, setPortfolio] = useState<portfolio[]>([]);
+  const { market, setMarket } = useCryptoMarketStore();
   useEffect(() => {
     if (!email) return;
 
     try {
       const getMyPortfolio = async () => {
-        const res = await axios.get("api/portfolio/select", {
-          params: { email },
-        });
+        const res = await axios.get(
+          "http://localhost:8080/api/portfolio/select",
+          {
+            params: { email },
+          }
+        );
         console.log(res.data);
+        setPortfolio(res.data);
         return res.data;
       };
       getMyPortfolio();
@@ -29,12 +43,24 @@ export default function PortfolioMain() {
   return (
     <div>
       <Card>
-        <CardHeader></CardHeader>
+        <CardHeader>
+          <Select
+            onValueChange={(value: "Upbit" | "Binance") => setMarket(value)}
+          >
+            <SelectTrigger className="w-[110px] text-black font-bold">
+              <SelectValue placeholder={market} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Upbit">Upbit</SelectItem>
+              <SelectItem value="Binance">Binance</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
         <CardContent>
-          <ul>
-            {/* {portfolio.map((p) => (
-              <li key={p.id}>test</li>
-            ())} */}
+          <ul className="flex flex-col gap-2">
+            {portfolio.map((p) => (
+              <PortfolioDetail key={p.id} portfolio={p} market={market} />
+            ))}
           </ul>
         </CardContent>
       </Card>
