@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useUserStore } from "@/store/useUserStore";
 import { portfolio } from "@/types/portfolio";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import PortfolioDetail from "./PortfolioDetail";
 import {
@@ -19,6 +19,19 @@ export default function PortfolioMain() {
   const { email } = useUserStore();
   const [portfolio, setPortfolio] = useState<portfolio[]>([]);
   const { market, setMarket } = useCryptoMarketStore();
+  const [totalValue, setTotalValue] = useState<number>();
+
+  const handleValueChange = useCallback((id, value) => {
+    setTotalValue((prev) => {
+      valueMap.set(id, value);
+      let sum = 0;
+      valueMap.forEach((v) => (sum += v));
+      return sum;
+    });
+  }, []);
+
+  const valueMap = new Map<number, number>();
+
   useEffect(() => {
     if (!email) return;
 
