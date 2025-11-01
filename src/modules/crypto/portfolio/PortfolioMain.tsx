@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useUserStore } from "@/store/useUserStore";
 import { portfolio } from "@/types/portfolio";
 import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import PortfolioDetail from "./PortfolioDetail";
 import {
@@ -14,67 +14,118 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCryptoMarketStore } from "@/store/useCryptoMarketStore";
+import {
+  usePortfolioDelete,
+  usePortfolioSelect,
+} from "@/hooks/crypto/portfolio/usePortfolioReactQuery";
+import { Loader2 } from "lucide-react";
+
+type ObjType = {
+  evalAmount: {
+    id: number;
+    evalAmount: number;
+  };
+  buyAmount: {
+    id: number;
+    buyAmount: number;
+  };
+};
 
 export default function PortfolioMain() {
   const { email } = useUserStore();
-  const [portfolio, setPortfolio] = useState<portfolio[]>([]);
   const { market, setMarket } = useCryptoMarketStore();
-  const [totalValue, setTotalValue] = useState<number>();
+  const [totalNowValue, setTotalNowValue] = useState<number>(0);
+  const [totalInvValue, setTotalInvValue] = useState(0);
+  const {
+    data: portfolio = [],
+    isLoading,
+    isError,
+    error,
+  } = usePortfolioSelect(email ?? "");
+  const { mutate } = usePortfolioDelete();
 
-  const handleValueChange = useCallback((id, value) => {
-    setTotalValue((prev) => {
-      valueMap.set(id, value);
-      let sum = 0;
-      valueMap.forEach((v) => (sum += v));
-      return sum;
-    });
+  const myEvalSet = useMemo(() => {
+    return new Map<number, number>();
+  }, []);
+  const myBuySet = useMemo(() => {
+    return new Map<number, number>();
   }, []);
 
-  const valueMap = new Map<number, number>();
+  const handleValueChange = useCallback(
+    (obj: ObjType) => {
+      myEvalSet.set(obj.evalAmount.id, obj.evalAmount.evalAmount);
+      let evalSum = 0;
+      myEvalSet.forEach((price) => (evalSum += price));
+      setTotalNowValue(evalSum);
 
-  useEffect(() => {
-    if (!email) return;
+      myBuySet.set(obj.buyAmount.id, obj.buyAmount.buyAmount);
+      let buySum = 0;
+      myBuySet.forEach((price) => (buySum += price));
+      setTotalInvValue(buySum);
+    },
+    [myEvalSet, myBuySet]
+  );
 
-    try {
-      const getMyPortfolio = async () => {
-        const res = await axios.get(
-          "http://localhost:8080/api/portfolio/select",
-          {
-            params: { email },
-          }
-        );
-        console.log(res.data);
-        setPortfolio(res.data);
-        return res.data;
-      };
-      getMyPortfolio();
-    } catch (err) {
-      toast.error("포트폴리오 조회 실패 " + err);
-    }
-  }, [email]);
+  if (isLoading) {
+    return (
+      <div className="flex justify-center w-full items-center">
+        <Loader2 className="w-10 h-10 animate-spin text-gray-500" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return <div>에러발생: {error.message}</div>;
+  }
 
   return (
     <div>
       <Card>
         <CardHeader>
-          <Select
-            onValueChange={(value: "Upbit" | "Binance") => setMarket(value)}
-          >
-            <SelectTrigger className="w-[110px] text-black font-bold">
-              <SelectValue placeholder={market} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Upbit">Upbit</SelectItem>
-              <SelectItem value="Binance">Binance</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex justify-between">
+            <div className="text-[18px]">
+              <div className="flex gap-3">
+                <label>투자금액</label>
+                {totalInvValue.toLocaleString()}
+              </div>
+              <div className="flex gap-3">
+                <label>평가금액</label>
+                {totalNowValue.toLocaleString()}
+              </div>
+              <div className="flex gap-3">
+                <label>수익률</label>
+                {(
+                  ((totalNowValue - totalInvValue) / totalInvValue) *
+                  100
+                ).toFixed(2)}{" "}
+                %
+              </div>
+            </div>
+            <Select
+              onValueChange={(value: "Upbit" | "Binance") => setMarket(value)}
+            >
+              <SelectTrigger className="w-[110px] text-black font-bold">
+                <SelectValue placeholder={market} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Upbit">Upbit</SelectItem>
+                <SelectItem value="Binance">Binance</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
-          <ul className="flex flex-col gap-2">
-            {portfolio.map((p) => (
-              <PortfolioDetail key={p.id} portfolio={p} market={market} />
+          <div className="grid grid-cols-2 gap-3">
+            {portfolio.map((p: portfolio) => (
+              <PortfolioDetail
+                key={p.id}
+                portfolio={p}
+                market={market}
+                onValueChange={handleValueChange}
+                onDelete={() => mutate({ email: email ?? "", id: p.id })}
+              />
             ))}
-          </ul>
+          </div>
         </CardContent>
       </Card>
     </div>

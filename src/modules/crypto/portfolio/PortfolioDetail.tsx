@@ -1,14 +1,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useUserStore } from "@/store/useUserStore";
 import { UpbitCoinPairs } from "@/types/coin";
 import { portfolio } from "@/types/portfolio";
 import axios from "axios";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 
 type Props = {
   portfolio: portfolio;
   market: "Upbit" | "Binance";
+  onValueChange: (obj: {
+    evalAmount: { id: number; evalAmount: number };
+    buyAmount: { id: number; buyAmount: number };
+  }) => void;
+  onDelete: (val1: string, val2: number) => void;
 };
 
 type Info = {
@@ -16,12 +21,18 @@ type Info = {
   value: string | number;
 };
 
-export default function PortfolioDetail({ portfolio, market }: Props) {
+export default function PortfolioDetail({
+  portfolio,
+  market,
+  onValueChange,
+  onDelete,
+}: Props) {
   const [infos, setInfos] = useState<Info[]>([]);
   const [korName, setKorName] = useState("");
   const [engName, setEngName] = useState("");
   const [price, setPrice] = useState<number | null>(null);
   const [changeRate, setChangeRate] = useState<number | null>(null); // 전일 대비 등락률
+  const { email } = useUserStore();
 
   useEffect(() => {
     const getPriceInfo = async () => {
@@ -38,8 +49,7 @@ export default function PortfolioDetail({ portfolio, market }: Props) {
           );
           const myPair = namePairs.data.find(
             (pair: UpbitCoinPairs) =>
-              pair.market.startsWith("KRW-") &&
-              pair.market.endsWith(portfolio.symbol.toUpperCase())
+              pair.market === `KRW-${portfolio.symbol.toUpperCase()}`
           );
 
           if (myPair) {
@@ -83,13 +93,18 @@ export default function PortfolioDetail({ portfolio, market }: Props) {
           { label: "매수금액", value: buyAmount.toLocaleString() },
           { label: "평가금액", value: evalAmount.toLocaleString() },
         ]);
+
+        onValueChange({
+          evalAmount: { id: portfolio.id, evalAmount },
+          buyAmount: { id: portfolio.id, buyAmount },
+        });
       } catch (err) {
         console.error("시세 불러오기 실패:", err);
       }
     };
 
     getPriceInfo();
-  }, [market, portfolio]);
+  }, [market, portfolio, onValueChange]);
 
   // 전일 대비 색상
   const rateColor =
@@ -102,7 +117,7 @@ export default function PortfolioDetail({ portfolio, market }: Props) {
       : "text-gray-400";
 
   return (
-    <Card>
+    <Card className="group relative">
       <CardHeader className="flex justify-between items-center">
         {/* 왼쪽 영역: 코인 심볼 이미지 + 이름 */}
         <div className="flex items-center space-x-3">
@@ -137,14 +152,29 @@ export default function PortfolioDetail({ portfolio, market }: Props) {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="">
         {infos.map((info) => (
-          <div key={info.label} className="flex justify-between py-1">
+          <div
+            key={info.label}
+            className="flex justify-between py-1 group-hover:blur-xs group-hover:bg-black/20 transition-all"
+          >
             <label className="text-gray-500">{info.label}</label>
             <p className="font-medium">{info.value}</p>
           </div>
         ))}
       </CardContent>
+
+      <div className="absolute flex gap-2 top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all">
+        <button className="p-2 rounded-md font-bold bg-black text-white hover:cursor-pointer">
+          수정
+        </button>
+        <button
+          className="p-2 rounded-md font-bold bg-red-300 hover:cursor-pointer"
+          onClick={() => onDelete(email ?? "", portfolio.id)}
+        >
+          삭제
+        </button>
+      </div>
     </Card>
   );
 }

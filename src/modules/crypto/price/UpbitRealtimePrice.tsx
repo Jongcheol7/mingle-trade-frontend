@@ -165,7 +165,7 @@ export default function UpbitRealtimePrice() {
                   <div className="flex items-center gap-2">
                     <Avatar className=" w-6 h-6 border-1 border-white shadow-md">
                       <AvatarImage
-                        src={`https://static.upbit.com/logos/${coin.symbol.replace(
+                        src={`https://static.upbit.com/logos/${coin.symbol?.replace(
                           /KRW-/,
                           ""
                         )}.png`}
