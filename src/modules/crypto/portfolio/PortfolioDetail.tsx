@@ -5,6 +5,8 @@ import { UpbitCoinPairs } from "@/types/coin";
 import { portfolio } from "@/types/portfolio";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import PortfolioEdit from "./PortfolioEdit";
+import { AnimatePresence } from "framer-motion";
 
 type Props = {
   portfolio: portfolio;
@@ -33,6 +35,7 @@ export default function PortfolioDetail({
   const [price, setPrice] = useState<number | null>(null);
   const [changeRate, setChangeRate] = useState<number | null>(null); // 전일 대비 등락률
   const { email } = useUserStore();
+  const [visibleEdit, setVisibleEdit] = useState(false);
 
   useEffect(() => {
     const getPriceInfo = async () => {
@@ -165,7 +168,13 @@ export default function PortfolioDetail({
       </CardContent>
 
       <div className="absolute flex gap-2 top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all">
-        <button className="p-2 rounded-md font-bold bg-black text-white hover:cursor-pointer">
+        <button
+          className="p-2 rounded-md font-bold bg-black text-white hover:cursor-pointer"
+          onClick={() => {
+            console.log("수정 클릭됨");
+            setVisibleEdit(true);
+          }}
+        >
           수정
         </button>
         <button
@@ -175,6 +184,16 @@ export default function PortfolioDetail({
           삭제
         </button>
       </div>
+
+      <AnimatePresence>
+        {visibleEdit && (
+          <PortfolioEdit
+            portfolio={portfolio}
+            name={market === "Upbit" ? korName : engName}
+            setVisibleEdit={setVisibleEdit}
+          />
+        )}
+      </AnimatePresence>
     </Card>
   );
 }

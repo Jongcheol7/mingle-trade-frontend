@@ -159,7 +159,7 @@ export default function UpbitRealtimePrice() {
               );
               return (
                 <li
-                  key={coin.symbol}
+                  key={`${coin.symbol}-${Math.round(coin.price)}`}
                   className={`grid grid-cols-[130px_100px_70px_80px] py-1 border-b border-gray-300`}
                 >
                   <div className="flex items-center gap-2">

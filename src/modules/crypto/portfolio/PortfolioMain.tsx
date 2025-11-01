@@ -2,9 +2,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useUserStore } from "@/store/useUserStore";
 import { portfolio } from "@/types/portfolio";
-import axios from "axios";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useMemo, useState } from "react";
 import PortfolioDetail from "./PortfolioDetail";
 import {
   Select,

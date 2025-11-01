@@ -1,6 +1,18 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "sonner";
+
+type FormData = {
+  enterPrice: number;
+  quantity: number;
+  email: string;
+  symbol: string;
+};
 
 export function usePortfolioSelect(email: string) {
   return useQuery({
@@ -42,7 +54,36 @@ export function usePortfolioDelete() {
         toast.success("포트폴리오가 삭제되었습니다.");
         queryClient.invalidateQueries({ queryKey: ["portfolio", email] });
       } else {
-        toast.error("포트폴리오 삭제에 실패했습니다.");
+        throw new Error(data.message || "포트폴리오 삭제에 실패했습니다.");
+      }
+    },
+    onError: () => {
+      toast.error("서버 통신 에러.");
+    },
+  });
+}
+
+export function usePortfolioUpdate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ enterPrice, quantity, email, symbol }: FormData) => {
+      const res = await axios.post(
+        "http://localhost:8080/api/portfolio/update",
+        {
+          enterPrice,
+          quantity,
+          email,
+          symbol,
+        }
+      );
+      return res.data;
+    },
+    onSuccess: (data, { email }) => {
+      if (data.status === "success") {
+        toast.success("포트폴리오가 업데이트 되었습니다.");
+        queryClient.invalidateQueries({ queryKey: ["portfolio", email] });
+      } else {
+        throw new Error(data.message || "포트폴리오 업데이트에 실패했습니다.");
       }
     },
     onError: () => {
