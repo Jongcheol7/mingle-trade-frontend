@@ -55,22 +55,48 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
     if (isSuccess) setVisibleNew(false);
   }, [isSuccess, setVisibleNew]);
 
-  // ✅ 업비트 심볼 리스트 불러오기
+  // ✅ 코인 심볼 리스트 불러오기 (Upbit or Binance)
   useEffect(() => {
-    if (market !== "Upbit") return;
-    const fetchUpbitMarkets = async () => {
+    const fetchMarkets = async () => {
       try {
-        const res = await axios.get<UpbitCoinPairs[]>(
-          "https://api.upbit.com/v1/market/all?isDetails=false"
-        );
-        const krwMarkets = res.data.filter((c) => c.market.startsWith("KRW-"));
-        setCoinList(krwMarkets);
+        if (market === "Upbit") {
+          const res = await axios.get<UpbitCoinPairs[]>(
+            "https://api.upbit.com/v1/market/all?isDetails=false"
+          );
+          const krwMarkets = res.data.filter((c) =>
+            c.market.startsWith("KRW-")
+          );
+          setCoinList(
+            krwMarkets.map((c) => ({
+              market: c.market,
+              korean_name: c.korean_name,
+              english_name: c.english_name,
+            }))
+          );
+        } else if (market === "Binance") {
+          const res = await axios.get<{ symbol: string; price: string }[]>(
+            "https://api.binance.com/api/v3/ticker/price"
+          );
+
+          // USDT 마켓만 필터링 (예: BTCUSDT, ETHUSDT)
+          const usdtMarkets = res.data.filter((c) => c.symbol.endsWith("USDT"));
+
+          // 업비트 타입과 맞춰서 일관성 있게 변환
+          const formatted = usdtMarkets.map((c) => ({
+            market: c.symbol,
+            korean_name: "",
+            english_name: c.symbol.replace("USDT", ""),
+          }));
+
+          setCoinList(formatted);
+        }
       } catch (err) {
         console.error(err);
-        toast.error("업비트 코인 목록 불러오기 실패");
+        toast.error(`${market} 코인 목록 불러오기 실패`);
       }
     };
-    fetchUpbitMarkets();
+
+    fetchMarkets();
   }, [market]);
 
   const handleSave = (data: FormData) => {
@@ -138,19 +164,29 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
                         <CommandItem
                           key={coin.market}
                           onSelect={() => {
-                            // 선택 시 react-hook-form 값 업데이트
-                            const value = coin.market.replace(/^KRW-/, "");
-                            setValue("symbol", value); // ← useForm에서 setValue import 필요
+                            const value =
+                              market === "Upbit"
+                                ? coin.market.replace(/^KRW-/, "")
+                                : coin.market.replace(/USDT$/, "");
+                            setValue("symbol", value);
                           }}
                         >
                           <div className="flex justify-between w-full">
-                            <span>{coin.korean_name}</span>
+                            <span>
+                              {coin.korean_name ||
+                                coin.english_name ||
+                                coin.market}
+                            </span>
                             <span className="text-gray-400 text-xs">
-                              {coin.market.replace(/^KRW-/, "")}
+                              {market === "Upbit"
+                                ? coin.market.replace(/^KRW-/, "")
+                                : coin.market.replace(/USDT$/, "")}
                             </span>
                           </div>
                           {getValues("symbol") ===
-                            coin.market.replace(/^KRW-/, "") && (
+                            (market === "Upbit"
+                              ? coin.market.replace(/^KRW-/, "")
+                              : coin.market.replace(/USDT$/, "")) && (
                             <Check className="ml-2 h-4 w-4" />
                           )}
                         </CommandItem>
@@ -165,7 +201,6 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
                   평균매수가
                 </label>
                 <Input
-                  type="number"
                   required
                   {...register("enterPrice")}
                   className=" flex-1"
@@ -174,12 +209,7 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
 
               <div className="flex items-center gap-3">
                 <label className="w-[100px] text-sm text-gray-600">수량</label>
-                <Input
-                  type="number"
-                  required
-                  {...register("quantity")}
-                  className=" flex-1"
-                />
+                <Input required {...register("quantity")} className=" flex-1" />
               </div>
             </CardContent>
 
