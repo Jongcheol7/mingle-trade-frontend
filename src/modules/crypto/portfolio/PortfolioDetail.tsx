@@ -15,7 +15,7 @@ type Props = {
     evalAmount: { id: number; evalAmount: number };
     buyAmount: { id: number; buyAmount: number };
   }) => void;
-  onDelete: (val1: string, val2: number) => void;
+  onDelete: (val1: string, val2: number, val3: string) => void;
 };
 
 type Info = {
@@ -68,8 +68,10 @@ export default function PortfolioDetail({
           currentPrice = data.trade_price;
           rate = data.signed_change_rate * 100; // 전일대비 등락률(%)
         } else if (market === "Binance") {
+          const symbol =
+            portfolio.symbol.toUpperCase().replace(/[-/]/g, "") + "USDT";
           const res = await axios.get(
-            `https://api.binance.com/api/v3/ticker/24hr?symbol=${portfolio.symbol}`
+            `https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`
           );
           currentPrice = parseFloat(res.data.lastPrice);
           rate = parseFloat(res.data.priceChangePercent); // 24시간 변동률(%)
@@ -179,7 +181,13 @@ export default function PortfolioDetail({
         </button>
         <button
           className="p-2 rounded-md font-bold bg-red-300 hover:cursor-pointer"
-          onClick={() => onDelete(email ?? "", portfolio.id)}
+          onClick={() =>
+            onDelete(
+              email ?? "",
+              portfolio.id,
+              market === "Upbit" ? "KRW" : "USD"
+            )
+          }
         >
           삭제
         </button>
@@ -191,6 +199,7 @@ export default function PortfolioDetail({
             portfolio={portfolio}
             name={market === "Upbit" ? korName : engName}
             setVisibleEdit={setVisibleEdit}
+            currency={market === "Upbit" ? "KRW" : "USD"}
           />
         )}
       </AnimatePresence>

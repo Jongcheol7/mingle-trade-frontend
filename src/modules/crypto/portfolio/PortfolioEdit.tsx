@@ -12,6 +12,7 @@ type Props = {
   portfolio: portfolio;
   name: string;
   setVisibleEdit: (val: boolean) => void;
+  currency: string;
 };
 
 type FormData = {
@@ -23,6 +24,7 @@ export default function PortfolioEdit({
   portfolio,
   name,
   setVisibleEdit,
+  currency,
 }: Props) {
   const { register, reset, handleSubmit, watch } = useForm({
     defaultValues: {
@@ -36,7 +38,7 @@ export default function PortfolioEdit({
   const quantity = watch("quantity");
   const evalValue = Number(enterPrice || 0) * Number(quantity || 0);
 
-  const onSubmit = (data: FormData) => {
+  const handleSave = (data: FormData) => {
     if (!email) {
       toast.error("이메일이 없습니다.");
       return;
@@ -46,6 +48,7 @@ export default function PortfolioEdit({
       quantity: data.quantity,
       email: email,
       symbol: portfolio.symbol,
+      currency: currency,
     });
 
     setVisibleEdit(false);
@@ -61,7 +64,7 @@ export default function PortfolioEdit({
         transition={{ duration: 0.25 }}
       >
         <Card className="w-[350px]">
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(handleSave)}>
             <CardHeader className="flex justify-between mb-3">
               <div className="flex items-center space-x-3">
                 <Avatar className=" w-6 h-6 border-1 border-white shadow-md">
@@ -125,7 +128,7 @@ export default function PortfolioEdit({
         </Card>
       </motion.div>
       <motion.div
-        className="fixed inset-0 z-40 bg-black"
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.7 }}
         exit={{ opacity: 0 }}
