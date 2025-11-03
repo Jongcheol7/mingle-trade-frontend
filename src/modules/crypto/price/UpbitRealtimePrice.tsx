@@ -63,7 +63,7 @@ export default function UpbitRealtimePrice() {
       const coinInfoList: CoinInfo[] = latestPricesList.map((a) => ({
         symbol: a.code,
         price: a.trade_price,
-        rate: a.change_rate,
+        rate: a.signed_change_rate,
         volume: a.acc_trade_price_24h,
         closeDate: "",
         prevClosePrice: 0,

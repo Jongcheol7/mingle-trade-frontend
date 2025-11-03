@@ -11,6 +11,7 @@ export default function CryptoNav() {
     { name: "자유게시판", href: "/crypto/freeboard" },
     { name: "차트", href: "/crypto/chart" },
     { name: "포트폴리오", href: "/crypto/portfolio" },
+    { name: "채팅임시", href: "/chat" },
   ];
 
   return (
