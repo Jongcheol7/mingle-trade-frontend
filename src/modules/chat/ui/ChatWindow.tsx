@@ -14,34 +14,34 @@ import { createPortal } from "react-dom";
 import { toast } from "sonner";
 
 type ChatWindowProps = {
-  receiverName: string;
+  receiverNickname: string;
   receiverUrl: string;
-  receiverId: string;
+  receiverEmail: string;
   onClose: () => void;
 };
 
 export default function ChatWindow({
-  receiverName,
+  receiverNickname,
   receiverUrl,
-  receiverId,
+  receiverEmail,
   onClose,
 }: ChatWindowProps) {
   const socketRef = useSocket();
   const [messages, setMessages] = useState<MessageType[]>([]);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const { email } = useUserStore();
+  const { email: senderEmail, nickname: senderNickname } = useUserStore();
   const [roomId, setRoomId] = useState(null);
 
   // 1:1 채팅 방번호 불러오기
   useEffect(() => {
-    if (!email) {
+    if (!senderEmail) {
       toast.error("로그인 정보가 없습니다.");
     }
     const fetchRoomId = async () => {
       try {
         const res = await axios.get("/api/chat/room", {
-          params: { senderId: user!.id, receiverId },
+          params: { senderEmail, receiverEmail },
         });
         setRoomId(res.data.roomId);
       } catch (err) {
@@ -50,10 +50,10 @@ export default function ChatWindow({
       }
     };
     fetchRoomId();
-  }, [user, receiverId, setRoomId]);
+  }, [senderEmail, receiverEmail, setRoomId]);
 
   // 채팅 내용 조회하기
-  const { data, isSuccess } = useChatMessage(roomId ?? 0);
+  const { data, isSuccess } = useChatMessage(senderEmail, receiverEmail);
   useEffect(() => {
     if (isSuccess && data.pages) {
       const allMessages = data.pages.flatMap((page) => page.result).reverse();
@@ -82,7 +82,7 @@ export default function ChatWindow({
     return () => {
       socket.off("chat");
     };
-  }, [socketRef, receiverId]);
+  }, [socketRef, receiverEmail]);
 
   // 보내기 버튼 클릭시
   const handleSend = () => {
@@ -91,12 +91,12 @@ export default function ChatWindow({
 
     // 서버로 메세지 보내기
     socket.emit("chat", {
-      senderId: user!.id,
-      receiverId,
-      senderName: user!.username,
-      receiverName,
+      senderEmail,
+      receiverEmail,
+      senderNickname,
+      receiverNickname,
       isDirect: true,
-      roomName: receiverName,
+      roomName: receiverNickname,
       message: input,
       roomId: roomId ?? 0,
     });
@@ -115,7 +115,7 @@ export default function ChatWindow({
             priority
             className="rounded-full mr-1"
           />
-          <span className="font-semibold">{receiverName}</span>
+          <span className="font-semibold">{receiverNickname}</span>
         </div>
         <button onClick={onClose}>
           <X size={18} />
@@ -123,7 +123,7 @@ export default function ChatWindow({
       </div>
       <div className="flex-1 p-3 overflow-y-auto max-h-[300px] scrollbar-none">
         {messages.map((msg: MessageType, idx) => {
-          const isMe = msg.senderId === user?.id;
+          const isMe = msg.senderEmail === senderEmail;
           return (
             <div
               key={idx}

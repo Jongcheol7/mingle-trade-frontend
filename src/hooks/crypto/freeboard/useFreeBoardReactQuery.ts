@@ -44,7 +44,12 @@ export function useFreeBoardAllLists(page = 1) {
           },
         }
       );
-      return res.data;
+      console.log("res.data : ", res.data);
+      if (res.data.status === "success") {
+        return res.data.data;
+      } else {
+        throw new Error(res.data.message || "조회 실패");
+      }
     },
   });
 }

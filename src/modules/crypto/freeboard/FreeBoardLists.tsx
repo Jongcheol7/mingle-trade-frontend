@@ -6,16 +6,27 @@ import { useFreeBoardAllLists } from "@/hooks/crypto/freeboard/useFreeBoardReact
 import { useState } from "react";
 import { FreeBoard } from "@/types/freeboard";
 import { Loader2 } from "lucide-react";
-import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
+import AvartarModule from "@/modules/common/AvartarModule";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useUserStore } from "@/store/useUserStore";
+import ChatWindow from "@/modules/chat/ui/ChatWindow";
 
 export default function FreeBoardLists() {
   const [page, setPage] = useState(1);
   const { data, isLoading } = useFreeBoardAllLists(page);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { email } = useUserStore();
+  const [chatOpen, setChatOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -74,7 +85,7 @@ export default function FreeBoardLists() {
           <div className="grid grid-cols-[70px_4fr_150px_70px] bg-gray-100 font-semibold text-center py-3 border-b">
             <p>번호</p>
             <p>제목</p>
-            <p>작성자</p>
+            <p className="text-left pl-3">작성자</p>
             <p>조회수</p>
           </div>
 
@@ -90,8 +101,55 @@ export default function FreeBoardLists() {
               >
                 {post.title}
               </p>
-              <p>{post.writer}</p>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <div className="flex gap-1 cursor-pointer">
+                    <AvartarModule src={post.profile_image} />
+                    <p>{post.nickname}</p>
+                  </div>
+                </DropdownMenuTrigger>
+                {email !== post.email ? (
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>친구추가</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="mt-1 cursor-pointer"
+                      onClick={() => setChatOpen(!chatOpen)}
+                    >
+                      메세지
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                ) : (
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>수정</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className={`mt-1 cursor-pointer `}
+                      onClick={() => {
+                        const confirmDelete =
+                          window.confirm("정말 삭제하시겠습니까?");
+                        if (confirmDelete) {
+                          //deleteMutate({ postId: post.id, onClose });
+                        }
+                      }}
+                    >
+                      삭제
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                )}
+              </DropdownMenu>
+
               <p>{post.views}</p>
+
+              {/* 채팅창 띄우기 */}
+              {chatOpen && (
+                <ChatWindow
+                  receiverNickname={post.nickname}
+                  receiverUrl={post.profile_image}
+                  receiverEmail={post.email}
+                  onClose={() => setChatOpen(false)}
+                />
+              )}
             </div>
           ))}
         </CardContent>

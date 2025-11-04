@@ -5,10 +5,10 @@ export type RoomType = {
 };
 
 export type MessageType = {
-  senderId: string;
-  receiverId: string;
-  senderName: string;
-  receiverName: string;
+  senderEmail: string;
+  receiverEmail: string;
+  senderNickname: string;
+  receiverNickname: string;
   isDirect: boolean;
   roomName: string;
   message: string;

@@ -1,10 +1,11 @@
 export type FreeBoard = {
   id: number;
   title: string;
-  writer: string;
+  nickname: string;
+  profile_image: string;
   email: string;
   content: string;
-  createdAt: Date;
-  deletedAt: Date;
+  created_at: Date;
+  deleted_at: Date;
   views: number;
 };

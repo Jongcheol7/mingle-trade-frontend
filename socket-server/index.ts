@@ -2,18 +2,7 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors"; //다른 주소에서도 서버에 접근할수 있도록 허용해주는 설정
-import { prisma } from "@/lib/prisma";
-
-type MessageType = {
-  senderId: string;
-  receiverId: string;
-  senderName: string;
-  receiverName: string;
-  isDirect: boolean;
-  roomName: string;
-  message: string;
-  roomId: number | undefined;
-};
+import { MessageType } from "@/types/chat";
 
 // 익스프레스 앱 생성
 const app = express();
@@ -49,11 +38,11 @@ io.on("connection", (socket) => {
     console.log("Message received:", message);
 
     // 받은 메세지를 DB에 먼저 저장을 해보자.
-    if (!message.senderId) {
+    if (!message.senderEmail) {
       console.error("보내는 사람 정보가 없습니다.");
       return;
     }
-    if (!message.receiverId) {
+    if (!message.receiverEmail) {
       console.error("받는 사람 정보가 없습니다.");
       return;
     }
@@ -72,8 +61,8 @@ io.on("connection", (socket) => {
             roomName: message.roomName,
             chatRoomMember: {
               create: [
-                { userId: message.senderId },
-                { userId: message.receiverId },
+                { userId: message.senderEmail },
+                { userId: message.receiverEmail },
               ],
             },
           },
@@ -86,7 +75,7 @@ io.on("connection", (socket) => {
       const messageSave = await prisma.message.create({
         data: {
           roomId: finalRoomId!,
-          senderId: message.senderId,
+          senderId: message.senderEmail,
           message: message.message,
         },
         include: {
