@@ -12,6 +12,5 @@ export type MessageType = {
   isDirect: boolean;
   roomName: string;
   message: string;
-  roomId: number | undefined;
   createdAt?: Date;
 };

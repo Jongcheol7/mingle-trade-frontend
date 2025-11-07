@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 export function useChatMessage(senderEmail: string, receiverEmail: string) {
@@ -37,5 +37,29 @@ export function useChatRoomLists(email: string) {
       }
     },
     enabled: !!email,
+  });
+}
+
+export function useMakeChatRoom(
+  senderEmail: string,
+  receiverEmail: string,
+  receiverNickname: string
+) {
+  return useMutation({
+    mutationFn: async () => {
+      const res = await axios.post(
+        "http://localhost:8080/api/chat/makeChatRoom",
+        {
+          senderEmail,
+          receiverEmail,
+          receiverNickname,
+        }
+      );
+      if (res.data.status === "success") {
+        return res.data.data;
+      } else {
+        throw new Error(res.data.message || "방 생성 실패");
+      }
+    },
   });
 }

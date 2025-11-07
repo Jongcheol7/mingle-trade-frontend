@@ -3,6 +3,8 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors"; //다른 주소에서도 서버에 접근할수 있도록 허용해주는 설정
 import { MessageType } from "@/types/chat";
+import axios from "axios";
+import { useMakeChatRoom } from "@/hooks/chat/useChatReactQuery";
 
 // 익스프레스 앱 생성
 const app = express();
@@ -52,40 +54,32 @@ io.on("connection", (socket) => {
     }
 
     try {
-      let finalRoomId = message.roomId;
       // 1. 방이 없다면 채팅방을 만들자.
-      if (message.roomId === 0) {
-        const newRoomId = await prisma.chatRoom.create({
-          data: {
-            isDirect: message.isDirect,
-            roomName: message.roomName,
-            chatRoomMember: {
-              create: [
-                { userId: message.senderEmail },
-                { userId: message.receiverEmail },
-              ],
-            },
-          },
-        });
-        finalRoomId = newRoomId.id;
+      if (!message) {
+        const { data } = useMakeChatRoom(
+          message.senderEmail,
+          message.receiverEmail,
+          message.receiverNickname
+        );
+        console.log("data : ", data);
       }
-      console.log(`${!message.roomId ? "채팅룸 생성 완료" : ""}`);
+      // console.log(`${!message.roomId ? "채팅룸 생성 완료" : ""}`);
 
-      // 2. 메세지 저장
-      const messageSave = await prisma.message.create({
-        data: {
-          roomId: finalRoomId!,
-          senderId: message.senderEmail,
-          message: message.message,
-        },
-        include: {
-          sender: true,
-        },
-      });
-      console.log("메세지 저장 완료");
+      // // 2. 메세지 저장
+      // const messageSave = await prisma.message.create({
+      //   data: {
+      //     roomId: finalRoomId!,
+      //     senderId: message.senderEmail,
+      //     message: message.message,
+      //   },
+      //   include: {
+      //     sender: true,
+      //   },
+      // });
+      // console.log("메세지 저장 완료");
 
       // 전체 클라이언트에게 전송
-      io.emit("chat", messageSave);
+      // io.emit("chat", messageSave);
     } catch (err) {
       console.error("메세지 저장중 에러발생 : ", err);
       return;

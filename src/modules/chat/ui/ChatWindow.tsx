@@ -3,6 +3,7 @@
 
 import { useChatMessage } from "@/hooks/chat/useChatReactQuery";
 import useSocket from "@/hooks/chat/useSocket";
+import AvartarModule from "@/modules/common/AvartarModule";
 import { timeTransform } from "@/modules/common/TimeTransform";
 import { useUserStore } from "@/store/useUserStore";
 import { MessageType } from "@/types/chat";
@@ -31,29 +32,9 @@ export default function ChatWindow({
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const { email: senderEmail, nickname: senderNickname } = useUserStore();
-  const [roomId, setRoomId] = useState(null);
-
-  // 1:1 채팅 방번호 불러오기
-  useEffect(() => {
-    if (!senderEmail) {
-      toast.error("로그인 정보가 없습니다.");
-    }
-    const fetchRoomId = async () => {
-      try {
-        const res = await axios.get("/api/chat/room", {
-          params: { senderEmail, receiverEmail },
-        });
-        setRoomId(res.data.roomId);
-      } catch (err) {
-        console.error("채팅방 조회 실패", err);
-        toast.error("채팅방을 가져오지 못했습니다.");
-      }
-    };
-    fetchRoomId();
-  }, [senderEmail, receiverEmail, setRoomId]);
 
   // 채팅 내용 조회하기
-  const { data, isSuccess } = useChatMessage(senderEmail, receiverEmail);
+  const { data, isSuccess } = useChatMessage(senderEmail ?? "", receiverEmail);
   useEffect(() => {
     if (isSuccess && data.pages) {
       const allMessages = data.pages.flatMap((page) => page.result).reverse();
@@ -61,7 +42,7 @@ export default function ChatWindow({
     }
   }, [data, isSuccess]);
 
-  console.log("ddd: ", messages);
+  console.log("ddd: ", data);
 
   // 스크롤 하단 이동
   useEffect(() => {
@@ -98,7 +79,6 @@ export default function ChatWindow({
       isDirect: true,
       roomName: receiverNickname,
       message: input,
-      roomId: roomId ?? 0,
     });
     setInput("");
   };
@@ -107,14 +87,7 @@ export default function ChatWindow({
     <div className="fixed bottom-4 right-4 w-[350px] h-[400px] bg-white border shadow-xl rounded-xl flex flex-col z-60">
       <div className="flex items-center justify-between p-3 border-b">
         <div className="flex gap-1 items-center">
-          <Image
-            src={receiverUrl}
-            alt="profileImage"
-            width={30}
-            height={30}
-            priority
-            className="rounded-full mr-1"
-          />
+          <AvartarModule src="receiverUrl" />
           <span className="font-semibold">{receiverNickname}</span>
         </div>
         <button onClick={onClose}>
