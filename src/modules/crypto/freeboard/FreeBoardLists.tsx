@@ -26,7 +26,7 @@ export default function FreeBoardLists() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { email } = useUserStore();
-  const [chatOpen, setChatOpen] = useState(false);
+  const [chatTarget, setChatTarget] = useState<FreeBoard | null>(null);
 
   if (isLoading) {
     return (
@@ -114,7 +114,7 @@ export default function FreeBoardLists() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="mt-1 cursor-pointer"
-                      onClick={() => setChatOpen(!chatOpen)}
+                      onClick={() => setChatTarget(post)}
                     >
                       메세지
                     </DropdownMenuItem>
@@ -142,12 +142,12 @@ export default function FreeBoardLists() {
               <p>{post.views}</p>
 
               {/* 채팅창 띄우기 */}
-              {chatOpen && (
+              {chatTarget && (
                 <ChatWindow
-                  receiverNickname={post.nickname}
-                  receiverUrl={post.profile_image}
-                  receiverEmail={post.email}
-                  onClose={() => setChatOpen(false)}
+                  receiverNickname={chatTarget.nickname}
+                  receiverUrl={chatTarget.profile_image}
+                  receiverEmail={chatTarget.email}
+                  onClose={() => setChatTarget(null)}
                 />
               )}
             </div>

@@ -1,16 +1,29 @@
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-export function useChatMessage(senderEmail: string, receiverEmail: string) {
+export function useChatMessage(
+  roomId: number,
+  senderEmail: string,
+  receiverEmail: string
+) {
   return useInfiniteQuery({
-    queryKey: ["directMessages", senderEmail, receiverEmail],
+    queryKey: ["directMessages", roomId, senderEmail, receiverEmail],
     queryFn: async ({ pageParam = null }) => {
-      const res = await axios.get("/api/chat/messages", {
-        params: { senderEmail, receiverEmail, cursor: pageParam, limit: 10 },
-      });
+      const res = await axios.get(
+        "http://localhost:8080/api/chat/directMessages",
+        {
+          params: {
+            roomId,
+            senderEmail,
+            receiverEmail,
+            cursor: pageParam,
+            limit: 10,
+          },
+        }
+      );
 
       if (res.data.status === "success") {
-        return res.data.data;
+        return res.data;
       } else {
         throw new Error(res.data.message || "조회 실패");
       }

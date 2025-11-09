@@ -1,27 +1,20 @@
+import { MessageType } from "@/types/chat";
 import { useEffect, useRef } from "react";
 import { io, Socket } from "socket.io-client";
 
 // 서버 주소
 const SOCKET_URL = "http://localhost:4000";
 
-type MessageType = {
-  senderId: string;
-  receiverId: string;
-  senderName: string;
-  receiverName: string;
-  isDirect: boolean;
-  roomName: string;
-  message: string;
-  roomId: number | undefined;
-  createdAt?: Date;
-};
-
 type ClientToServerEvents = {
+  chat: (message: MessageType) => void;
+};
+type ServerToClientEvents = {
   chat: (message: MessageType) => void;
 };
 
 export default function useSocket() {
-  const socketRef = useRef<Socket<ClientToServerEvents>>(null);
+  const socketRef =
+    useRef<Socket<ServerToClientEvents, ClientToServerEvents>>(null);
 
   useEffect(() => {
     // 소켓 연결

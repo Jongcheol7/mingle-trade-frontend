@@ -48,38 +48,37 @@ io.on("connection", (socket) => {
       console.error("받는 사람 정보가 없습니다.");
       return;
     }
-    if (!message.message || message.message.trim() === "") {
+    if (!message.content || message.content.trim() === "") {
       console.error("메세지가 없습니다.");
       return;
     }
 
     try {
       // 1. 방이 없다면 채팅방을 만들자.
-      if (!message) {
-        const { data } = useMakeChatRoom(
-          message.senderEmail,
-          message.receiverEmail,
-          message.receiverNickname
+      if (message.roomId === 0) {
+        const makeRoomRes = await axios.post(
+          "http://localhost:8080/api/chat/makeChatRoom",
+          {
+            senderEmail: message.senderEmail,
+            receiverEmail: message.receiverEmail,
+            receiverUrl: message.receiverUrl,
+          }
         );
-        console.log("data : ", data);
+        //console.log("방생성 결과: ", makeRoomRes.data.data.room_id);
+        message.roomId = makeRoomRes.data.data.room_id;
       }
-      // console.log(`${!message.roomId ? "채팅룸 생성 완료" : ""}`);
 
-      // // 2. 메세지 저장
-      // const messageSave = await prisma.message.create({
-      //   data: {
-      //     roomId: finalRoomId!,
-      //     senderId: message.senderEmail,
-      //     message: message.message,
-      //   },
-      //   include: {
-      //     sender: true,
-      //   },
-      // });
-      // console.log("메세지 저장 완료");
-
-      // 전체 클라이언트에게 전송
-      // io.emit("chat", messageSave);
+      // 2. 채팅 DB에 저장해보자.
+      const messageSaveRes = await axios.post(
+        "http://localhost:8080/api/chat/saveChatMessage",
+        {
+          roomId: message.roomId,
+          senderEmail: message.senderEmail,
+          content: message.content,
+        }
+      );
+      //console.log("메세지 저장 결과: ", messageSaveRes.data);
+      io.emit("chat", message);
     } catch (err) {
       console.error("메세지 저장중 에러발생 : ", err);
       return;

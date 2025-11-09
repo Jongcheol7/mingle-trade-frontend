@@ -5,12 +5,15 @@ export type RoomType = {
 };
 
 export type MessageType = {
+  id: number;
+  roomId: number;
   senderEmail: string;
   receiverEmail: string;
   senderNickname: string;
   receiverNickname: string;
+  receiverUrl: string;
   isDirect: boolean;
   roomName: string;
-  message: string;
+  content: string;
   createdAt?: Date;
 };
