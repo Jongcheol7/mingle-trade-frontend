@@ -7,7 +7,7 @@ export function useChatMessage(
   receiverEmail: string
 ) {
   return useInfiniteQuery({
-    queryKey: ["directMessages", roomId, senderEmail, receiverEmail],
+    queryKey: ["directMessages", roomId],
     queryFn: async ({ pageParam = null }) => {
       const res = await axios.get(
         "http://localhost:8080/api/chat/directMessages",

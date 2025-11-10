@@ -4,7 +4,6 @@ import { Server } from "socket.io";
 import cors from "cors"; //다른 주소에서도 서버에 접근할수 있도록 허용해주는 설정
 import { MessageType } from "@/types/chat";
 import axios from "axios";
-import { useMakeChatRoom } from "@/hooks/chat/useChatReactQuery";
 
 // 익스프레스 앱 생성
 const app = express();
@@ -48,7 +47,7 @@ io.on("connection", (socket) => {
       console.error("받는 사람 정보가 없습니다.");
       return;
     }
-    if (!message.content || message.content.trim() === "") {
+    if (!message.message || message.message.trim() === "") {
       console.error("메세지가 없습니다.");
       return;
     }
@@ -74,7 +73,7 @@ io.on("connection", (socket) => {
         {
           roomId: message.roomId,
           senderEmail: message.senderEmail,
-          content: message.content,
+          message: message.message,
         }
       );
       //console.log("메세지 저장 결과: ", messageSaveRes.data);

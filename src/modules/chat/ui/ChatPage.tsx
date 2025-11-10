@@ -1,148 +1,204 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { useChatMessage } from "@/hooks/chat/useChatReactQuery";
 import useSocket from "@/hooks/chat/useSocket";
-import { MessageType, RoomType } from "@/types/chat";
-import { X } from "lucide-react";
+import AvartarModule from "@/modules/common/AvartarModule";
+import { timeTransform } from "@/modules/common/TimeTransform";
+import { useUserStore } from "@/store/useUserStore";
+import { MessageType } from "@/types/chat";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
 type Props = {
-  roomInfo: RoomType | null;
-  email: string;
-  setRoomInfo: (roomInfo: null) => void;
+  roomId: number;
 };
 
-export default function ChatPage({ roomInfo, email, setRoomInfo }: Props) {
+export default function ChatPage({ roomId }: Props) {
   const socketRef = useSocket();
   const [messages, setMessages] = useState<MessageType[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [input, setInput] = useState("");
-  const [receiverId, setReceiverId] = useState("");
-  const [receiverName, setReceiverName] = useState("");
+  const { email: senderEmail, nickname: senderNickname } = useUserStore();
   const [receiverUrl, setReceiverUrl] = useState("");
-  console.log("ChatPage 에서의 roomInfo : ", roomInfo);
+  const [receiverNickname, setReceiverNickname] = useState("");
+  const [receiverEmail, setReceiverEmail] = useState("");
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const queryClient = useQueryClient();
 
-  // 상대방 정보 추출하기
+  // ✅ 1. 무한스크롤 (채팅 내역)
+  const { data, isSuccess, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useChatMessage(roomId, "", "");
+
+  // ✅ 2. 쿼리 새로고침 (방 바뀔 때)
   useEffect(() => {
-    if (!roomInfo) return;
-    const notMe = roomInfo.chatRoomMember.find(
-      (member) => member.userId != user.id
-    );
+    queryClient.invalidateQueries({ queryKey: ["directMessages", roomId] });
+  }, [roomId, queryClient]);
 
-    if (notMe) {
-      setReceiverId(notMe.userId);
-      setReceiverName(notMe.user.username);
-      setReceiverUrl(notMe.user.imageUrl);
+  // ✅ 3. 데이터 구성
+  useEffect(() => {
+    if (!isSuccess || !data?.pages) return;
+
+    // 채팅은 최신 메시지가 아래에 위치하도록 (reverse 제거)
+    const allMessages = data.pages.flatMap((page) => page.data || []);
+    const members = data.pages.flatMap((page) => page.member || []);
+
+    const receiverInfo = members.find((m) => m.email !== senderEmail);
+    if (receiverInfo) {
+      setReceiverUrl(receiverInfo.profile_image);
+      setReceiverNickname(receiverInfo.nickname);
+      setReceiverEmail(receiverInfo.email);
     }
-  }, [roomInfo, user.id]);
 
-  // 채팅 내용 조회하기
-  const { data, isSuccess } = useChatMessage(roomInfo?.id ?? 0);
+    setMessages(allMessages);
+  }, [data, isSuccess, senderEmail]);
+
+  // ✅ 4. 초기 진입 시 스크롤 맨 아래로
+  const initialLoad = useRef(true);
   useEffect(() => {
-    if (isSuccess && data.pages) {
-      const allMessages = data.pages.flatMap((page) => page.result).reverse();
-      setMessages(allMessages);
+    if (initialLoad.current && messages.length > 0) {
+      requestAnimationFrame(() => {
+        scrollContainerRef.current?.scrollTo({
+          top: scrollContainerRef.current.scrollHeight,
+          behavior: "auto",
+        });
+      });
+      initialLoad.current = false;
     }
-  }, [data, isSuccess]);
-
-  // 스크롤 하단 이동
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 소켓 메세지 송수신
+  // ✅ 5. 위로 스크롤 시 과거 불러오기
+  useEffect(() => {
+    if (!sentinelRef.current || !hasNextPage) return;
+
+    const observer = new IntersectionObserver(
+      async (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          const prevHeight = scrollContainerRef.current?.scrollHeight || 0;
+          await fetchNextPage();
+          // ✅ 이전 스크롤 위치 유지
+          requestAnimationFrame(() => {
+            const newHeight = scrollContainerRef.current?.scrollHeight || 0;
+            if (scrollContainerRef.current) {
+              scrollContainerRef.current.scrollTop = newHeight - prevHeight;
+            }
+          });
+        }
+      },
+      {
+        root: scrollContainerRef.current,
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
+
+  // ✅ 6. 실시간 소켓 수신
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return;
 
     // 서버에서 메세지 받기
     socket.on("chat", (message: MessageType) => {
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => [message, ...prev]);
+      requestAnimationFrame(() => {
+        scrollContainerRef.current?.scrollTo({
+          top: scrollContainerRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      });
     });
-
     // 이벤트 중복 방지
     return () => {
       socket.off("chat");
     };
-  }, [socketRef, receiverId]);
+  }, [socketRef, receiverEmail, roomId]);
 
-  // 보내기 버튼 클릭시
+  // ✅ 7. 메시지 전송
   const handleSend = () => {
     const socket = socketRef.current;
     if (!socket || input.trim() === "") return;
 
-    // 서버로 메세지 보내기
     socket.emit("chat", {
-      senderId: user!.id,
-      receiverId,
-      senderName: user!.username,
-      receiverName,
+      id: 0,
+      roomId,
+      senderEmail: senderEmail || "",
+      receiverEmail,
+      senderNickname: senderNickname || "",
+      receiverNickname,
+      receiverUrl,
       isDirect: true,
-      roomName: receiverName,
+      roomName: "",
       message: input,
-      roomId: roomInfo?.id ?? 0,
+      createdAt: new Date(),
     });
     setInput("");
   };
 
   return (
-    <div className="bg-white h-[100vh] border  flex flex-col z-50">
-      <div className="flex items-center justify-between p-3 border-b">
+    <Card className="bg-white border rounded-xl flex flex-col h-[calc(100vh-150px)]">
+      <CardHeader className="flex items-center justify-between p-3 border-b h-[40px]">
         <div className="flex gap-1 items-center">
-          <Avatar>
-            <AvatarImage src={receiverUrl} />
-            <AvatarFallback>{receiverName[0]}</AvatarFallback>
-          </Avatar>
-          <span className="font-semibold">{receiverName}</span>
+          <AvartarModule src={receiverUrl} />
+          <span className="font-semibold">{receiverNickname}</span>
         </div>
-        <button onClick={() => setRoomInfo(null)}>
-          <X size={18} />
-        </button>
-      </div>
-      <div className="flex-1 p-3 overflow-y-auto  scrollbar-none">
-        {messages.map((msg: MessageType, idx) => {
-          const isMe = msg.senderId === user?.id;
-          return (
-            <div
-              key={idx}
-              className={`flex w-full mb-1 ${
-                isMe ? "justify-end" : "justify-start"
-              }`}
-            >
+      </CardHeader>
+
+      {/* ✅ 아래에서 위로 쌓이는 구조 */}
+      <CardContent
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-3 scrollbar-none flex flex-col-reverse"
+      >
+        <div className="flex flex-col-reverse gap-1">
+          {/* 화면상 '맨 위'에 해당하는 sentinel */}
+          <div ref={sentinelRef} />
+
+          {messages.map((msg, idx) => {
+            const isMe = msg.senderEmail === senderEmail;
+            return (
               <div
-                className={`flex items-end gap-1 ${
-                  isMe ? "flex-row-reverse" : "flex-row"
+                key={idx}
+                className={`flex w-full mb-1 ${
+                  isMe ? "justify-end" : "justify-start"
                 }`}
               >
                 <div
-                  className={`max-w-[75%] break-words rounded-xl px-2 py-1 text-sm ${
-                    isMe ? "bg-blue-100" : "bg-gray-100"
+                  className={`flex items-end gap-1 ${
+                    isMe ? "flex-row-reverse" : "flex-row"
                   }`}
                 >
-                  {msg.message}
-                </div>
-                <div className="text-[10px] text-gray-500 leading-none">
-                  <div>{timeTransform(msg.createdAt!).date}</div>
-                  <div className={`${isMe ? "text-right" : "text-left"}`}>
-                    {timeTransform(msg.createdAt!).time}
+                  <div
+                    className={`max-w-[75%] break-words rounded-xl px-2 py-1 text-sm ${
+                      isMe ? "bg-blue-100" : "bg-gray-100"
+                    }`}
+                  >
+                    {msg.message}
+                  </div>
+                  <div className="text-[10px] text-gray-500 leading-none">
+                    <div>{timeTransform(msg.createdAt!).date}</div>
+                    <div className={`${isMe ? "text-right" : "text-left"}`}>
+                      {timeTransform(msg.createdAt!).time}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-        <div ref={messagesEndRef} />
-      </div>
-      <div className="flex border-t p-2">
+            );
+          })}
+        </div>
+      </CardContent>
+
+      <CardFooter className="flex">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              handleSend();
-            }
-          }}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
           className="flex-1 px-2 py-1 border rounded mr-2 text-sm"
           placeholder="Type a message..."
         />
@@ -152,7 +208,7 @@ export default function ChatPage({ roomInfo, email, setRoomInfo }: Props) {
         >
           보내기
         </button>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }

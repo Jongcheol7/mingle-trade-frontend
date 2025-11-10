@@ -9,6 +9,8 @@ import { useUserStore } from "@/store/useUserStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import axios from "axios";
 import { toast } from "sonner";
+import { MessageSquare } from "lucide-react";
+import Link from "next/link";
 
 export default function HeaderMain() {
   const router = useRouter();
@@ -46,6 +48,9 @@ export default function HeaderMain() {
         <NavLink href={"/stock"}>Stock</NavLink>
       </div>
       <div className="flex items-center gap-3">
+        <Link href={"/chat"}>
+          <MessageSquare className="w-5 h-5 text-gray-600" />
+        </Link>
         <div
           className="flex gap-1 items-center cursor-pointer"
           onClick={() => router.push("/auth/mypage")}

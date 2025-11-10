@@ -11,11 +11,10 @@ export default function CryptoNav() {
     { name: "자유게시판", href: "/crypto/freeboard" },
     { name: "차트", href: "/crypto/chart" },
     { name: "포트폴리오", href: "/crypto/portfolio" },
-    { name: "채팅임시", href: "/chat" },
   ];
 
   return (
-    <nav className="flex justify-center border-b mb-3 bg-gradient-to-r from-amber-50 to-amber-100/70 backdrop-blur-sm sticky top-0 z-30">
+    <nav className="flex justify-center border-b mb-3 bg-amber-100 backdrop-blur-sm sticky top-0 z-30">
       <div className="flex gap-10 h-12 items-center">
         {menus.map((menu) => (
           <Link

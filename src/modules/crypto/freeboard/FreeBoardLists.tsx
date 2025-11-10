@@ -78,7 +78,7 @@ export default function FreeBoardLists() {
   };
 
   return (
-    <div className="w-full mx-auto">
+    <div className="w-full mx-auto h-[calc(100vh-300px)]">
       {/* 게시글 리스트 */}
       <Card className="border border-gray-200 p-0">
         <CardContent className="p-0">

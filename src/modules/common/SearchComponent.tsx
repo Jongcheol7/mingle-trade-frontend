@@ -7,7 +7,7 @@ type Props = {
 export default function SearchComponent({ setKeyword }: Props) {
   return (
     <div
-      className="flex items-center gap-2 bg-gray-200 px-2 py-1 rounded-lg border border-gray-300 focus-within:border-blue-400 transition"
+      className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-lg border border-gray-300 focus-within:border-blue-400 transition"
       style={{ width: "calc(100% - 10px)" }}
     >
       <Search className="w-4 h-4 text-gray-400" />

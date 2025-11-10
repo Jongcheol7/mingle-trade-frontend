@@ -140,8 +140,8 @@ export default function Editor({ setEditor, content, readOnly }: EditorType) {
     <div>
       <EditorContent
         editor={editor}
-        className={`tiptap w-full overflow-y-auto scrollbar-none my-2 ${
-          readOnly ? "h-full" : "max-h-[415px]"
+        className={`tiptap w-full overflow-y-auto scrollbar-none my-2 rounded-md ${
+          readOnly ? "h-full" : "h-[460px]"
         }`}
         onKeyDown={(e) => {
           if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "y")) {

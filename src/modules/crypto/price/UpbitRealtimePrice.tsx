@@ -84,7 +84,7 @@ export default function UpbitRealtimePrice() {
   }, [upbitCoinParis, sortKey, sortOrder]);
 
   return (
-    <div className="p-4 relative  rounded-2xl border-gray-400 bg-gray-100 shadow-lg  text-black">
+    <div className="p-4 relative  rounded-2xl border-gray-400 bg-white shadow-lg  text-black">
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold">📈 실시간 KRW 시세</h1>
@@ -103,7 +103,7 @@ export default function UpbitRealtimePrice() {
         </div>
         <SearchComponent setKeyword={setKeyword} />
       </div>
-      <ul className="relative min-h-[350px] max-h-[450px] overflow-auto text-sm scrollbar-none">
+      <ul className="relative h-[calc(100vh-300px)] overflow-auto text-sm scrollbar-none">
         <li
           className={
             "sticky grid grid-cols-[130px_100px_70px_80px] py-1 font-bold text-[14px]"

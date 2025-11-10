@@ -23,13 +23,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProp) {
   return (
-    <html lang="en">
+    <html lang="en" className="antialiased">
       <ReactQueryClient>
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased my-5 mx-30`}
+          className={`${geistSans.variable} ${geistMono.variable} my-5 bg-amber-50`}
         >
-          <HeaderMain />
-          {children}
+          <div className="min-w-[900px] max-w-[1200px] mx-auto">
+            <HeaderMain />
+            {children}
+          </div>
           <Toaster richColors position="bottom-center" />
         </body>
       </ReactQueryClient>

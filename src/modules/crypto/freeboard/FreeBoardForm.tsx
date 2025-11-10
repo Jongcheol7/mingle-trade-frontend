@@ -70,7 +70,7 @@ export default function FreeBoardForm({ id }: Props) {
     }
 
     val.id = id;
-    val.writer = nickname!;
+    val.nickname = nickname!;
     val.email = email!;
     val.content = html;
 
@@ -130,7 +130,7 @@ export default function FreeBoardForm({ id }: Props) {
   };
 
   return (
-    <Card>
+    <Card className=" h-[calc(100vh-200px)]">
       <form onSubmit={handleSubmit(handleSave)}>
         <CardHeader className="flex gap-2">
           <Input type="text" {...register("title")} />
@@ -149,7 +149,7 @@ export default function FreeBoardForm({ id }: Props) {
           </Button>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="py-0 my-0">
           <Editor
             setEditor={setEditor}
             content={data?.content ?? ""}

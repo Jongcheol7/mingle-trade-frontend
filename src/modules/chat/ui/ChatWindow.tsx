@@ -113,13 +113,12 @@ export default function ChatWindow({
       receiverUrl,
       isDirect: true,
       roomName: receiverNickname,
-      content: input,
+      message: input,
       createdAt: new Date(),
     });
     setInput("");
   };
 
-  //  console.log("🔥 DB에서 받은 messages", data?.pages);
   return createPortal(
     <div className="fixed bottom-4 right-4 w-[350px] h-[400px] bg-white border shadow-xl rounded-xl flex flex-col z-60">
       <div className="flex items-center justify-between p-3 border-b">
@@ -153,7 +152,7 @@ export default function ChatWindow({
                       isMe ? "bg-blue-100" : "bg-gray-100"
                     }`}
                   >
-                    {msg.content || "빈값"}
+                    {msg.message}
                   </div>
                   <div className="text-[10px] text-gray-500 leading-none">
                     <div>{timeTransform(msg.createdAt!).date}</div>

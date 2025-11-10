@@ -64,6 +64,8 @@ body {
   overflow-x: hidden;
 }
 
+
+
 :root {
   body[data-scroll-locked][data-scroll-locked] {
     overflow: auto !important;

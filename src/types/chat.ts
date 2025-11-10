@@ -2,6 +2,10 @@ export type RoomType = {
   id: number;
   room_name: string;
   is_direct: boolean;
+  room_image: string;
+  created_at: Date;
+  last_message: string;
+  last_message_at: Date;
 };
 
 export type MessageType = {
@@ -14,6 +18,6 @@ export type MessageType = {
   receiverUrl: string;
   isDirect: boolean;
   roomName: string;
-  content: string;
+  message: string;
   createdAt?: Date;
 };
