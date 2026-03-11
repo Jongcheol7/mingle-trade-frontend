@@ -127,7 +127,7 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
             {/* 닫기 버튼 */}
             <button
               onClick={() => setVisibleNew(false)}
-              className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
             >
               <X size={20} />
             </button>
@@ -140,15 +140,15 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
 
             <CardContent className="space-y-4 pt-2">
               <div className="flex items-center gap-3">
-                <label className="w-[100px] text-sm text-gray-600">
+                <label className="w-[100px] text-sm text-muted-foreground">
                   거래소
                 </label>
-                <Input value={market} readOnly className="bg-gray-100 flex-1" />
+                <Input value={market} readOnly className="bg-muted flex-1" />
               </div>
 
               {/* ✅ 심볼 셀렉트 */}
               <div className="flex items-start gap-3">
-                <label className="w-[100px] text-sm text-gray-600 mt-2">
+                <label className="w-[100px] text-sm text-muted-foreground mt-2">
                   심볼
                 </label>
                 <div className="flex-1">
@@ -177,7 +177,7 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
                                 coin.english_name ||
                                 coin.market}
                             </span>
-                            <span className="text-gray-400 text-xs">
+                            <span className="text-muted-foreground text-xs">
                               {market === "Upbit"
                                 ? coin.market.replace(/^KRW-/, "")
                                 : coin.market.replace(/USDT$/, "")}
@@ -197,7 +197,7 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
               </div>
 
               <div className="flex items-center gap-3">
-                <label className="w-[100px] text-sm text-gray-600">
+                <label className="w-[100px] text-sm text-muted-foreground">
                   평균매수가
                 </label>
                 <Input
@@ -208,7 +208,7 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
               </div>
 
               <div className="flex items-center gap-3">
-                <label className="w-[100px] text-sm text-gray-600">수량</label>
+                <label className="w-[100px] text-sm text-muted-foreground">수량</label>
                 <Input required {...register("quantity")} className=" flex-1" />
               </div>
             </CardContent>
@@ -223,7 +223,7 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
               </Button>
               <Button
                 type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
               >
                 추가
               </Button>

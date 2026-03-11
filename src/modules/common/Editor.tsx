@@ -52,8 +52,6 @@ export default function Editor({ setEditor, content, readOnly }: EditorType) {
       const currentImgs = [
         ...html.matchAll(/<img[^>]+src="([^"]+)"[^>]*>/g),
       ].map((m) => m[1]);
-      console.log("currentImgs :", currentImgs);
-
       // 2. 직전 이미지 리스트와 비교해서 삭제된 이미지가 있는지 확인
       const deletedImgs = prevImgsRef.current.filter(
         (src) => !currentImgs.includes(src)
@@ -63,11 +61,9 @@ export default function Editor({ setEditor, content, readOnly }: EditorType) {
         (src) => !prevImgsRef.current.includes(src)
       );
 
-      console.log("deletedImgs :", deletedImgs);
       // 3. 삭제된 이미지가 CloudFront라면 S3 삭제 요청
       deletedImgs.forEach(async (src: string) => {
         if (src.startsWith(process.env.NEXT_PUBLIC_CLOUDFRONT_DOMAIN ?? "")) {
-          console.log("삭제 실행 전");
           DeleteFromS3(src);
         }
       });
@@ -135,7 +131,6 @@ export default function Editor({ setEditor, content, readOnly }: EditorType) {
 
   if (!editor) return null;
 
-  console.log("editor.getHTML(); :", editor.getHTML());
   return (
     <div>
       <EditorContent

@@ -14,28 +14,21 @@ export default function CryptoNav() {
   ];
 
   return (
-    <nav className="flex justify-center border-b mb-3 bg-amber-100 backdrop-blur-sm sticky top-0 z-30">
-      <div className="flex gap-10 h-12 items-center">
-        {menus.map((menu) => (
-          <Link
-            key={menu.href}
-            href={menu.href}
-            className={cn(
-              "relative font-medium text-amber-800 transition-all duration-200 hover:text-amber-600",
-              pathname.includes(menu.href) && "text-amber-600 font-semibold"
-            )}
-          >
-            {menu.name}
-            {/* 밑줄 애니메이션 */}
-            <span
-              className={cn(
-                "absolute left-0 -bottom-1 h-[2px] w-0 bg-amber-600 transition-all duration-300",
-                pathname.includes(menu.href) && "w-full"
-              )}
-            ></span>
-          </Link>
-        ))}
-      </div>
+    <nav className="flex gap-1 mb-4 sm:mb-5 bg-muted/50 p-1 rounded-xl w-full sm:w-fit overflow-x-auto">
+      {menus.map((menu) => (
+        <Link
+          key={menu.href}
+          href={menu.href}
+          className={cn(
+            "flex-1 sm:flex-none text-center px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap",
+            pathname.includes(menu.href)
+              ? "bg-card text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          {menu.name}
+        </Link>
+      ))}
     </nav>
   );
 }

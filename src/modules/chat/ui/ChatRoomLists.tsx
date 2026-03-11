@@ -2,7 +2,6 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import AvartarModule from "@/modules/common/AvartarModule";
 import { timeTransform } from "@/modules/common/TimeTransform";
 import { RoomType } from "@/types/chat";
 
@@ -12,35 +11,35 @@ type Props = {
 };
 
 export default function ChatRoomLists({ roomLists, setRoomId }: Props) {
-  // 마지막 채팅시간 구하기.
-
   return (
-    <Card className="h-[calc(100vh-150px)]">
-      <CardHeader>
-        <h1 className="text-xl font-bold">채팅 목록</h1>
+    <Card className="h-full">
+      <CardHeader className="border-b border-border">
+        <h2 className="text-base font-semibold">채팅 목록</h2>
       </CardHeader>
-      <CardContent className="px-3">
-        <div className="flex flex-col gap-3">
+      <CardContent className="px-2 pt-2">
+        <div className="flex flex-col gap-1">
           {roomLists.map((room: RoomType) => {
             return (
               <div
                 key={room.id}
-                className="flex gap-2 pb-2 items-center hover:bg-gray-100 transition-all border-b border-b-gray-200"
+                className="flex gap-3 p-2.5 items-center hover:bg-muted/50 rounded-lg transition-colors cursor-pointer"
                 onClick={() => setRoomId(room.id)}
               >
-                <Avatar className="w-9 h-9 border-1 border-white shadow-md">
+                <Avatar className="w-10 h-10 border border-border shadow-sm shrink-0">
                   <AvatarImage src={room.room_image} />
-                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-amber-300 to-yellow-400 text-white">
+                  <AvatarFallback className="bg-muted text-muted-foreground text-sm">
                     {""}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <p className="font-bold text-[14px]">{room.room_name}</p>
-                  <p className="text-[13px] text-gray-700">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm text-foreground">
+                    {room.room_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
                     {room.last_message}
                   </p>
                 </div>
-                <div className="flex flex-col items-center text-[10px]">
+                <div className="flex flex-col items-end text-[10px] text-muted-foreground shrink-0">
                   <p>{timeTransform(room.last_message_at!).date}</p>
                   <p>{timeTransform(room.last_message_at!).time}</p>
                 </div>

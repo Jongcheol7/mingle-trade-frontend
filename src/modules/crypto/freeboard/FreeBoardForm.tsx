@@ -9,7 +9,7 @@ import {
 import Editor from "@/modules/common/Editor";
 import { useUserStore } from "@/store/useUserStore";
 import { FreeBoard } from "@/types/freeboard";
-import { Loader2 } from "lucide-react";
+import { Loader2, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -51,7 +51,7 @@ export default function FreeBoardForm({ id }: Props) {
   if (isFetching || isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-10 h-10 animate-spin text-gray-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -74,19 +74,15 @@ export default function FreeBoardForm({ id }: Props) {
     val.email = email!;
     val.content = html;
 
-    //이미지들을 추출해서 S3에 저장하기 위해 presigned-url 발급
     const matches = [
       ...html.matchAll(/<img[^>]+src="(data:image\/[^"]+|blob:[^"]+)"[^>]*>/g),
     ];
     let uploadHTML = html;
-    console.log("html : ", html);
-    console.log("matches : ", matches);
 
     for (let i = 0; i < matches.length; i++) {
       const fullTag = matches[i][0];
       const base64 = matches[i][1];
 
-      //base64 -> blob -> File 변환
       const res = await fetch(base64);
       const blob = await res.blob();
       const file = new File([blob], `image${i}.jpeg`, { type: blob.type });
@@ -99,8 +95,6 @@ export default function FreeBoardForm({ id }: Props) {
           },
         });
 
-        console.log("uploadRes : ", uploadRes);
-
         if (uploadRes.status !== 200 && uploadRes.status !== 204) {
           throw new Error("S3 업로드 실패");
         }
@@ -112,10 +106,8 @@ export default function FreeBoardForm({ id }: Props) {
             process.env.NEXT_PUBLIC_CLOUDFRONT_DOMAIN
           );
 
-        //스타일 속성 유지하기
         const styleMatch = fullTag.match(/style="([^"]*)"/);
         const styleAttr = styleMatch ? ` style="${styleMatch[1]}"` : "";
-        // base64 태그 → 실제 S3 URL로 바꾸기 (해당 <img> 전체 태그 교체)
         const s3ImgTag = `<img src="${fileUrl}"${styleAttr} />`;
         uploadHTML = uploadHTML.replace(fullTag, s3ImgTag);
         val.content = uploadHTML;
@@ -130,21 +122,33 @@ export default function FreeBoardForm({ id }: Props) {
   };
 
   return (
-    <Card className=" h-[calc(100vh-200px)]">
+    <Card className="h-[calc(100vh-180px)]">
       <form onSubmit={handleSubmit(handleSave)}>
-        <CardHeader className="flex gap-2">
-          <Input type="text" {...register("title")} />
-          <Button variant={"secondary"} className="cursor-pointer">
+        <CardHeader className="flex items-center gap-2 border-b border-border">
+          <Input
+            type="text"
+            placeholder="제목을 입력하세요"
+            className="flex-1"
+            {...register("title")}
+          />
+          <Button
+            size="sm"
+            variant={"default"}
+            className="cursor-pointer gap-1.5"
+          >
+            <Save className="w-3.5 h-3.5" />
             저장
           </Button>
           <Button
+            size="sm"
             onClick={(e) => {
               e.preventDefault();
               router.back();
             }}
-            variant={"destructive"}
-            className="cursor-pointer"
+            variant={"outline"}
+            className="cursor-pointer gap-1.5"
           >
+            <X className="w-3.5 h-3.5" />
             취소
           </Button>
         </CardHeader>

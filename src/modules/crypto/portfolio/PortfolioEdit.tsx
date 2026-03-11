@@ -74,18 +74,18 @@ export default function PortfolioEdit({
                       "/default_profile.png"
                     }
                   />
-                  <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-amber-300 to-yellow-400 text-white">
+                  <AvatarFallback className="text-2xl font-bold bg-muted text-muted-foreground">
                     {""}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-semibold text-lg">{name}</p>
-                  <p className="text-sm text-gray-500">{portfolio.symbol}</p>
+                  <p className="text-sm text-muted-foreground">{portfolio.symbol}</p>
                 </div>
               </div>
               <div className="flex items-center">
                 <button
-                  className="p-2 rounded-full hover:bg-gray-100"
+                  className="p-2 rounded-full hover:bg-muted"
                   onClick={(e) => {
                     e.preventDefault();
                     reset({
@@ -97,14 +97,14 @@ export default function PortfolioEdit({
                   <RefreshCcw className="w-5 h-5" />
                 </button>
                 <button
-                  className="p-2 bg-gray-300 rounded-md cursor-pointer hover:bg-gray-400 transition-all"
+                  className="p-2 bg-primary text-primary-foreground rounded-md cursor-pointer hover:bg-primary/90 transition-colors"
                   type="submit"
                 >
                   저장
                 </button>
               </div>
             </CardHeader>
-            <CardContent className="text-[17px] text-gray-700">
+            <CardContent className="text-[17px] text-foreground">
               <div className="flex gap-2 justify-between">
                 <label>평균매수가 :</label>
                 <input

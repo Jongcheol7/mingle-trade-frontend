@@ -1,10 +1,10 @@
 import {
-  QueryClient,
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import api from "@/lib/api";
+import { AxiosError } from "axios";
 import { toast } from "sonner";
 
 type FormData = {
@@ -20,12 +20,9 @@ export function usePortfolioSelect(email: string, currency: string) {
     queryKey: ["portfolio", email, currency],
     queryFn: async ({ queryKey }) => {
       const [, email] = queryKey;
-      const res = await axios.get(
-        "http://localhost:8080/api/portfolio/select",
-        {
-          params: { email, currency },
-        }
-      );
+      const res = await api.get("/api/portfolio/select", {
+        params: { email, currency },
+      });
 
       if (res.data.status === "success") {
         return res.data.data;
@@ -49,14 +46,11 @@ export function usePortfolioDelete() {
       id: number;
       currency: string;
     }) => {
-      const res = await axios.post(
-        "http://localhost:8080/api/portfolio/delete",
-        {
-          email: email,
-          id: id,
-          currency: currency,
-        }
-      );
+      const res = await api.post("/api/portfolio/delete", {
+        email: email,
+        id: id,
+        currency: currency,
+      });
       return res.data;
     },
     onSuccess: (data, { email, currency }) => {
@@ -85,16 +79,13 @@ export function usePortfolioUpdate() {
       symbol,
       currency,
     }: FormData) => {
-      const res = await axios.post(
-        "http://localhost:8080/api/portfolio/update",
-        {
-          enterPrice,
-          quantity,
-          email,
-          symbol,
-          currency,
-        }
-      );
+      const res = await api.post("/api/portfolio/update", {
+        enterPrice,
+        quantity,
+        email,
+        symbol,
+        currency,
+      });
       return res.data;
     },
     onSuccess: (data, { email, currency }) => {
@@ -123,16 +114,13 @@ export function usePortfolioInsert() {
       symbol,
       currency,
     }: FormData) => {
-      const res = await axios.post(
-        "http://localhost:8080/api/portfolio/insert",
-        {
-          enterPrice,
-          quantity,
-          email,
-          symbol,
-          currency,
-        }
-      );
+      const res = await api.post("/api/portfolio/insert", {
+        enterPrice,
+        quantity,
+        email,
+        symbol,
+        currency,
+      });
       return res.data;
     },
     onSuccess: (data, { email, currency }) => {

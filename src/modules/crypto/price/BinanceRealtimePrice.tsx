@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/lib/api";
 import { BinanceStreamTicker, CoinInfo } from "@/types/coin";
 import SearchComponent from "@/modules/common/SearchComponent";
 import { formatVolume } from "./formatVolume";
@@ -40,8 +40,8 @@ export default function BinanceRealtimePrice() {
   useEffect(() => {
     const getPrevCloseInfo = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:8080/api/prev-price/selectAll/${formatted}`
+        const res = await api.get(
+          `/api/prev-price/selectAll/${formatted}`
         );
         setPrevCloseInfo(res.data);
       } catch (err) {
@@ -52,9 +52,8 @@ export default function BinanceRealtimePrice() {
     getPrevCloseInfo();
   }, []);
 
-  // ✅ prevCloseInfo가 로드된 후 WebSocket 연결
   useEffect(() => {
-    if (prevCloseInfo.length === 0) return; // 전일종가 없으면 실행 X
+    if (prevCloseInfo.length === 0) return;
 
     const ws = new WebSocket("wss://stream.binance.com:9443/ws/!ticker@arr");
 
@@ -71,7 +70,6 @@ export default function BinanceRealtimePrice() {
               (pair: BinanceStreamTicker) => pair.s === p.symbol
             );
 
-            //이전 데이터 찾기
             const prevCoin = prevState.find(
               (c) => c.symbol === p.symbol.replace(/USDT(?=$)/, "")
             );
@@ -117,14 +115,14 @@ export default function BinanceRealtimePrice() {
   }, [prevCloseInfo, sortKey, sortOrder]);
 
   return (
-    <div className="p-4 relative rounded-2xl border-gray-400 bg-amber-100 shadow-lg  text-black">
+    <div className="p-4 relative rounded-2xl border border-border bg-card shadow-sm text-foreground">
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold">📈 실시간 USDT 시세</h1>
+          <h1 className="text-lg font-bold">실시간 USDT 시세</h1>
           <Select
             onValueChange={(value: "Upbit" | "Binance") => setMarket(value)}
           >
-            <SelectTrigger className="w-[110px] text-black font-bold">
+            <SelectTrigger className="w-[110px] font-semibold">
               <SelectValue placeholder={market} />
             </SelectTrigger>
             <SelectContent>
@@ -132,17 +130,17 @@ export default function BinanceRealtimePrice() {
               <SelectItem value="Binance">Binance</SelectItem>
             </SelectContent>
           </Select>
-          <span className="text-sm">09:00기준</span>
+          <span className="text-xs text-muted-foreground">09:00기준</span>
         </div>
         <SearchComponent setKeyword={setKeyword} />
       </div>
-      <ul className="relative h-[calc(100vh-300px)] overflow-auto text-sm scrollbar-none">
+      <ul className="relative h-screen overflow-auto text-sm scrollbar-none">
         <li
           className={
             "sticky grid grid-cols-[130px_100px_70px_80px] py-1 font-bold text-[14px]"
           }
         >
-          <span className="">자산명</span>
+          <span>자산명</span>
 
           <BinanceRealTimeLabel
             column="price"
@@ -180,17 +178,17 @@ export default function BinanceRealtimePrice() {
             .map((coin) => (
               <li
                 key={coin.symbol}
-                className={`grid grid-cols-[130px_100px_70px_80px] py-1 border-b border-gray-300`}
+                className="grid grid-cols-[130px_100px_70px_80px] py-1 border-b border-border"
               >
                 <div className="flex items-center gap-2">
-                  <Avatar className=" w-6 h-6 border-1 border-white shadow-md">
+                  <Avatar className="w-6 h-6 border border-border shadow-sm">
                     <AvatarImage src={coin.logoUrl || "/default_profile.png"} />
-                    <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-amber-300 to-yellow-400 text-white">
+                    <AvatarFallback className="text-xs bg-muted text-muted-foreground">
                       {""}
                     </AvatarFallback>
                   </Avatar>
                   <span
-                    className="text-left text-[16px] font-bold cursor-pointer line-clamp-1"
+                    className="text-left text-[16px] font-bold cursor-pointer line-clamp-1 hover:text-primary transition-colors"
                     onClick={() => router.push(`/crypto/chart/${coin.symbol}`)}
                   >
                     {coin.symbol}
@@ -201,7 +199,7 @@ export default function BinanceRealtimePrice() {
                 </span>
                 <span
                   className={`text-right text-[16px] ${
-                    coin.rate >= 0 ? "text-green-500" : "text-red-500"
+                    coin.rate >= 0 ? "text-emerald-500" : "text-red-500"
                   }`}
                 >
                   {coin.rate.toFixed(2)}%
@@ -212,7 +210,7 @@ export default function BinanceRealtimePrice() {
               </li>
             ))
         ) : (
-          <Loader2 className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 animate-spin text-gray-500" />
+          <Loader2 className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 animate-spin text-muted-foreground" />
         )}
       </ul>
     </div>

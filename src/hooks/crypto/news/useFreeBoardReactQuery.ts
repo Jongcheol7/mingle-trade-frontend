@@ -1,9 +1,14 @@
 import { FreeBoard } from "@/types/freeboard";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import api from "@/lib/api";
 import { toast } from "sonner";
 
-export function useFreeBoardSave() {
+export function useCryptoNewsSave() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: FreeBoard) => {
@@ -25,13 +30,13 @@ export function useFreeBoardSave() {
   });
 }
 
-export function useFreeBoardAllLists(page = 1) {
-  return useQuery({
-    queryKey: ["freeboardLists", page],
-    queryFn: async () => {
-      const res = await api.get("/api/freeboard/selectAll", {
+export function useCryptoNewsAllLists() {
+  return useInfiniteQuery({
+    queryKey: ["cryptoNewsLists"],
+    queryFn: async ({ pageParam = null }) => {
+      const res = await api.get("/api/crypto/news", {
         params: {
-          page: page,
+          cursor: pageParam,
           limit: 10,
         },
       });
@@ -41,10 +46,14 @@ export function useFreeBoardAllLists(page = 1) {
         throw new Error(res.data.message || "조회 실패");
       }
     },
+    getNextPageParam: (lastPage) => {
+      return lastPage.nextCursor ?? undefined;
+    },
+    initialPageParam: null,
   });
 }
 
-export function useFreeBoardDetails(id: number) {
+export function useCryptoNewsDetails(id: number) {
   return useQuery({
     queryKey: ["freeboardDetails", id],
     queryFn: async () => {

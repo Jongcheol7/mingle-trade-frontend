@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useUserStore } from "@/store/useUserStore";
 import ChatPage from "./ChatPage";
+import { MessageSquare } from "lucide-react";
 
 export default function ChatMain() {
   const { email } = useUserStore();
@@ -21,17 +22,30 @@ export default function ChatMain() {
     }
   }, [email, router]);
 
-  console.log("roomId : ", roomId);
-
   return (
-    <div className="flex min-w-[400px] max-w-[1000px] m-auto">
-      <div className="w-[30%] mr-2 ">
+    <div className="flex flex-col md:flex-row max-w-[1000px] mx-auto gap-4 h-[calc(100vh-120px)]">
+      <aside className={`w-full md:w-[280px] shrink-0 ${roomId !== 0 ? "hidden md:block" : ""}`}>
         {data && email && (
           <ChatRoomLists roomLists={data} setRoomId={setRoomId} />
         )}
-      </div>
-      <div className="flex-1">
-        {roomId !== 0 && <ChatPage roomId={roomId} />}
+      </aside>
+      <div className={`flex-1 min-w-0 ${roomId === 0 ? "hidden md:block" : ""}`}>
+        {roomId !== 0 ? (
+          <div className="h-full flex flex-col">
+            <button
+              className="md:hidden text-sm text-primary font-medium px-3 py-2 self-start mb-2"
+              onClick={() => setRoomId(0)}
+            >
+              ← 목록으로
+            </button>
+            <ChatPage roomId={roomId} />
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+            <MessageSquare className="w-12 h-12 mb-3 opacity-30" />
+            <p className="text-sm">채팅방을 선택해주세요</p>
+          </div>
+        )}
       </div>
     </div>
   );

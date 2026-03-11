@@ -114,12 +114,12 @@ export default function PortfolioDetail({
   // 전일 대비 색상
   const rateColor =
     changeRate === null
-      ? "text-gray-400"
+      ? "text-muted-foreground"
       : changeRate > 0
       ? "text-red-500"
       : changeRate < 0
-      ? "text-blue-500"
-      : "text-gray-400";
+      ? "text-primary"
+      : "text-muted-foreground";
 
   return (
     <Card className="group relative">
@@ -133,7 +133,7 @@ export default function PortfolioDetail({
                 "/default_profile.png"
               }
             />
-            <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-amber-300 to-yellow-400 text-white">
+            <AvatarFallback className="text-2xl font-bold bg-muted text-muted-foreground">
               {""}
             </AvatarFallback>
           </Avatar>
@@ -141,7 +141,7 @@ export default function PortfolioDetail({
             <p className="font-semibold text-lg">
               {market === "Upbit" ? korName : engName}
             </p>
-            <p className="text-sm text-gray-500">{portfolio.symbol}</p>
+            <p className="text-sm text-muted-foreground">{portfolio.symbol}</p>
           </div>
         </div>
 
@@ -161,9 +161,9 @@ export default function PortfolioDetail({
         {infos.map((info) => (
           <div
             key={info.label}
-            className="flex justify-between py-1 group-hover:blur-xs group-hover:bg-black/20 transition-all"
+            className="flex justify-between py-1 group-hover:blur-xs group-hover:bg-foreground/10 transition-all"
           >
-            <label className="text-gray-500">{info.label}</label>
+            <label className="text-muted-foreground">{info.label}</label>
             <p className="font-medium">{info.value}</p>
           </div>
         ))}
@@ -171,16 +171,15 @@ export default function PortfolioDetail({
 
       <div className="absolute flex gap-2 top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all">
         <button
-          className="p-2 rounded-md font-bold bg-black text-white hover:cursor-pointer"
+          className="p-2 rounded-md font-semibold bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer transition-colors"
           onClick={() => {
-            console.log("수정 클릭됨");
             setVisibleEdit(true);
           }}
         >
           수정
         </button>
         <button
-          className="p-2 rounded-md font-bold bg-red-300 hover:cursor-pointer"
+          className="p-2 rounded-md font-semibold bg-destructive text-white hover:bg-destructive/90 cursor-pointer transition-colors"
           onClick={() =>
             onDelete(
               email ?? "",

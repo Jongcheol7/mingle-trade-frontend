@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactStrictMode: false,
   images: {
     remotePatterns: [
@@ -11,6 +10,15 @@ const nextConfig: NextConfig = {
         pathname: "/gh/spothq/cryptocurrency-icons@master/**",
       },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: "/crypto",
+        destination: "/crypto/freeboard",
+        permanent: true,
+      },
+    ];
   },
 };
 

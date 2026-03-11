@@ -1,4 +1,4 @@
-export function timeTransform(time: Date) {
+export function timeTransform(time: Date | string) {
   const koreanDate = new Date(time).toLocaleDateString("ko-KR", {
     timeZone: "Asia/Seoul",
   });

@@ -7,7 +7,7 @@ import AvartarModule from "@/modules/common/AvartarModule";
 import { timeTransform } from "@/modules/common/TimeTransform";
 import { useUserStore } from "@/store/useUserStore";
 import { MessageType } from "@/types/chat";
-import axios from "axios";
+import api from "@/lib/api";
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -37,12 +37,9 @@ export default function ChatWindow({
   useEffect(() => {
     if (!senderEmail || !receiverEmail) return;
     const findChatRoom = async () => {
-      const res = await axios.get(
-        "http://localhost:8080/api/chat/findChatRoom",
-        {
-          params: { senderEmail, receiverEmail },
-        }
-      );
+      const res = await api.get("/api/chat/findChatRoom", {
+        params: { senderEmail, receiverEmail },
+      });
       setRoomId(res.data.data);
     };
     findChatRoom();
@@ -134,7 +131,6 @@ export default function ChatWindow({
         {messages.map((msg: MessageType, idx) => {
           {
             const isMe = msg.senderEmail === senderEmail;
-            console.log("msg : ", msg);
             return (
               <div
                 key={idx}
@@ -149,12 +145,12 @@ export default function ChatWindow({
                 >
                   <div
                     className={`max-w-[75%] break-words rounded-xl px-2 py-1 text-sm ${
-                      isMe ? "bg-blue-100" : "bg-gray-100"
+                      isMe ? "bg-accent" : "bg-muted"
                     }`}
                   >
                     {msg.message}
                   </div>
-                  <div className="text-[10px] text-gray-500 leading-none">
+                  <div className="text-[10px] text-muted-foreground leading-none">
                     <div>{timeTransform(msg.createdAt!).date}</div>
                     <div className={`${isMe ? "text-right" : "text-left"}`}>
                       {timeTransform(msg.createdAt!).time}
@@ -182,7 +178,7 @@ export default function ChatWindow({
         />
         <button
           onClick={handleSend}
-          className="text-sm bg-blue-500 text-white px-3 py-1 rounded"
+          className="text-sm bg-primary text-primary-foreground px-3 py-1 rounded"
         >
           보내기
         </button>

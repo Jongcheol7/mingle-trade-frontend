@@ -76,7 +76,7 @@ export default function PortfolioMain() {
   if (isLoading) {
     return (
       <div className="flex justify-center w-full items-center">
-        <Loader2 className="w-10 h-10 animate-spin text-gray-500" />
+        <Loader2 className="w-10 h-10 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -88,31 +88,31 @@ export default function PortfolioMain() {
   return (
     <div>
       <Card className="pt-0">
-        <CardHeader className="flex justify-between items-center bg-gradient-to-r bg-gray-100 border-b border-gray-200 rounded-t-xl py-3 px-5">
+        <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-muted border-b border-border rounded-t-xl py-3 px-4 sm:px-5">
           {/* 왼쪽: 총 자산 요약 */}
           <div className="flex flex-col gap-1 text-[16px]">
             <div className="flex justify-between gap-6">
-              <span className="text-gray-600 font-medium">💰 투자금액</span>
-              <span className="font-semibold text-gray-800">
+              <span className="text-muted-foreground font-medium">투자금액</span>
+              <span className="font-semibold text-foreground">
                 {totalInvValue.toLocaleString()} KRW
               </span>
             </div>
             <div className="flex justify-between gap-6">
-              <span className="text-gray-600 font-medium">📊 평가금액</span>
-              <span className="font-semibold text-gray-800">
+              <span className="text-muted-foreground font-medium">평가금액</span>
+              <span className="font-semibold text-foreground">
                 {totalNowValue.toLocaleString()} KRW
               </span>
             </div>
 
             <div className="flex justify-between gap-6">
-              <span className="text-gray-600 font-medium">📈 수익률</span>
+              <span className="text-muted-foreground font-medium">수익률</span>
               <span
                 className={`font-bold ${
                   totalNowValue - totalInvValue > 0
-                    ? "text-green-600"
+                    ? "text-emerald-500"
                     : totalNowValue - totalInvValue < 0
                     ? "text-red-500"
-                    : "text-gray-600"
+                    : "text-muted-foreground"
                 }`}
               >
                 {totalInvValue > 0
@@ -128,7 +128,7 @@ export default function PortfolioMain() {
           {/* 오른쪽: 거래소 선택 */}
           <div className="flex flex-col items-center gap-2">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-500 font-medium">
+              <label className="text-sm text-muted-foreground font-medium">
                 거래소 선택
               </label>
               <Select
@@ -137,7 +137,7 @@ export default function PortfolioMain() {
                   refetch();
                 }}
               >
-                <SelectTrigger className="w-[120px] text-black font-bold border-gray-300 focus:ring-2 focus:ring-blue-300">
+                <SelectTrigger className="w-[120px] text-black font-bold border-border focus:ring-2 focus:ring-primary/30">
                   <SelectValue placeholder={market} />
                 </SelectTrigger>
                 <SelectContent>
@@ -147,7 +147,7 @@ export default function PortfolioMain() {
               </Select>
             </div>
             <button
-              className="self-end py-1 px-2 bg-gray-300 rounded font-bold hover:bg-gray-400 cursor-pointer transition-all"
+              className="self-end py-1.5 px-3 bg-primary text-primary-foreground rounded-md font-semibold hover:bg-primary/90 cursor-pointer transition-colors"
               onClick={() => setVisibleNew(true)}
             >
               신규추가
@@ -155,7 +155,7 @@ export default function PortfolioMain() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {portfolio.map((p: portfolio) => (
               <PortfolioDetail
                 key={p.id}

@@ -28,7 +28,7 @@ export default function BinanceChart({ symbol }: Props) {
         timeVisible: true,
         borderVisible: false,
         // ✅ x축 라벨을 직접 포맷
-        tickMarkFormatter: (time, tickMarkType, locale) => {
+        tickMarkFormatter: (time: number) => {
           const date = new Date(time * 1000);
           return date.toLocaleTimeString("ko-KR", {
             hour: "2-digit",
@@ -54,7 +54,7 @@ export default function BinanceChart({ symbol }: Props) {
         const res = await axios.get(
           `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${tick}&limit=5000`
         );
-        console.log("res : ", res);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const formatted = res.data.map((d: any) => ({
           time: d[0] / 1000,
           open: parseFloat(d[1]),
@@ -80,7 +80,7 @@ export default function BinanceChart({ symbol }: Props) {
 
       // 실시간으로 최신 캔들 갱신
       candleSeries.update({
-        time: k.t / 1000, // timestamp (초 단위)
+        time: (k.t / 1000) as import("lightweight-charts").Time, // timestamp (초 단위)
         open: parseFloat(k.o),
         high: parseFloat(k.h),
         low: parseFloat(k.l),
@@ -96,7 +96,7 @@ export default function BinanceChart({ symbol }: Props) {
 
   return (
     <div className="w-full mx-auto">
-      <Card className="border borde-gray-200 p-0">
+      <Card className="border border-border p-0">
         <CardHeader>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
@@ -105,8 +105,8 @@ export default function BinanceChart({ symbol }: Props) {
                 {tickLists.map((t) => (
                   <div
                     key={t}
-                    className={`p-1 border rounded-md ${
-                      tick === t ? "bg-black text-white" : ""
+                    className={`p-1 border rounded-md transition-colors ${
+                      tick === t ? "bg-primary text-primary-foreground" : "hover:bg-muted"
                     }`}
                     onClick={() => setTick(t)}
                   >
@@ -116,7 +116,7 @@ export default function BinanceChart({ symbol }: Props) {
               </div>
             </div>
             <Link
-              className="py-2 px-2 mt-2 rounded-md border bg-black text-white font-bold cursor-pointer"
+              className="py-2 px-2 mt-2 rounded-md bg-primary text-primary-foreground font-semibold cursor-pointer hover:bg-primary/90 transition-colors"
               href={`/crypto/info/${symbol}`}
             >
               코인정보

@@ -1,9 +1,9 @@
-import axios from "axios";
+import api from "@/lib/api";
 import { toast } from "sonner";
 
 export default async function DeleteFromS3(src: string) {
   try {
-    await axios.post("http://localhost:8080/api/s3/delete", {
+    await api.post("/api/s3/delete", {
       imageUrl: src,
     });
   } catch (err) {

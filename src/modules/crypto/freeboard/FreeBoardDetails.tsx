@@ -1,10 +1,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { useFreeBoardDetails } from "@/hooks/crypto/freeboard/useFreeBoardReactQuery";
 import Editor from "@/modules/common/Editor";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft, Pencil } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Editor as TiptapEditor } from "@tiptap/react";
@@ -30,34 +29,38 @@ export default function FreeBoardDetails({ id }: Props) {
   if (isLoading || isFetching) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="w-10 h-10 animate-spin text-gray-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
-  console.log("ddd : ", data);
-
   return (
     <Card className="h-full">
-      <CardHeader className="flex gap-2">
-        <Input type="text" value={data.title} readOnly />
+      <CardHeader className="flex items-center gap-2 border-b border-border">
+        <h2 className="flex-1 text-lg font-semibold text-foreground truncate">
+          {data.title}
+        </h2>
         <Button
-          className=" cursor-pointer"
+          size="sm"
+          className="cursor-pointer gap-1.5"
           variant={"secondary"}
           onClick={() => router.push(`/crypto/freeboard/write/${data.id}`)}
         >
+          <Pencil className="w-3.5 h-3.5" />
           수정
         </Button>
         <Button
-          className=" cursor-pointer"
+          size="sm"
+          className="cursor-pointer gap-1.5"
           onClick={router.back}
-          variant={"destructive"}
+          variant={"outline"}
         >
-          뒤로가기
+          <ArrowLeft className="w-3.5 h-3.5" />
+          뒤로
         </Button>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="pt-4">
         <Editor
           setEditor={setEditor}
           content={data?.content ?? ""}

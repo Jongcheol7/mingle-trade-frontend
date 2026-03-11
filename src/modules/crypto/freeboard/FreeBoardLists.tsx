@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useFreeBoardAllLists } from "@/hooks/crypto/freeboard/useFreeBoardReactQuery";
 import { useState } from "react";
 import { FreeBoard } from "@/types/freeboard";
-import { Loader2 } from "lucide-react";
+import { Loader2, PenLine } from "lucide-react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import AvartarModule from "@/modules/common/AvartarModule";
 import {
@@ -30,19 +30,21 @@ export default function FreeBoardLists() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center w-full items-center">
-        <Loader2 className="w-10 h-10 animate-spin text-gray-500" />
+      <div className="flex justify-center w-full items-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
-  // ✅ data 없을 때 처리
   if (!data || !data.lists?.length) {
     return (
-      <div className="flex w-full gap-5 flex-col justify-center items-center text-gray-500">
+      <div className="flex w-full gap-4 flex-col justify-center items-center text-muted-foreground h-64">
         <p>게시글이 없습니다.</p>
         <Link href="/crypto/freeboard/write/0">
-          <Button className="cursor-pointer">글쓰기</Button>
+          <Button className="cursor-pointer gap-2">
+            <PenLine className="w-4 h-4" />
+            글쓰기
+          </Button>
         </Link>
       </div>
     );
@@ -65,12 +67,10 @@ export default function FreeBoardLists() {
   );
 
   const handleViewContent = async (post: FreeBoard) => {
-    //조회수 insert 요청
-    const res = await axios.post("http://localhost:8080/api/freeboard/viewUp", {
+    const res = await api.post("/api/freeboard/viewUp", {
       boardId: post.id,
       email: post.email,
     });
-    console.log("res ddd : ", res);
     if (res.data === "success") {
       queryClient.invalidateQueries({ queryKey: ["freeboardLists", page] });
     }
@@ -78,34 +78,47 @@ export default function FreeBoardLists() {
   };
 
   return (
-    <div className="w-full mx-auto h-[calc(100vh-300px)]">
+    <div className="w-full mx-auto">
+      {/* 상단 헤더 */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-foreground">자유게시판</h2>
+        <Link href="/crypto/freeboard/write/0">
+          <Button size="sm" className="cursor-pointer gap-1.5">
+            <PenLine className="w-3.5 h-3.5" />
+            글쓰기
+          </Button>
+        </Link>
+      </div>
+
       {/* 게시글 리스트 */}
-      <Card className="border border-gray-200 p-0">
+      <Card className="border border-border p-0 overflow-hidden">
         <CardContent className="p-0">
-          <div className="grid grid-cols-[70px_4fr_150px_70px] bg-gray-100 font-semibold text-center py-3 border-b">
-            <p>번호</p>
-            <p>제목</p>
-            <p className="text-left pl-3">작성자</p>
-            <p>조회수</p>
+          <div className="hidden sm:grid grid-cols-[60px_1fr_140px_60px] bg-muted text-sm font-medium text-muted-foreground text-center py-2.5 border-b border-border">
+            <p>#</p>
+            <p className="text-left pl-4">제목</p>
+            <p className="text-left">작성자</p>
+            <p>조회</p>
           </div>
 
           {lists.map((post: FreeBoard) => (
             <div
               key={post.id}
-              className="grid grid-cols-[70px_4fr_150px_70px] text-center py-3 hover:bg-gray-50 transition border-b last:border-none"
+              className="grid grid-cols-[1fr_auto] sm:grid-cols-[60px_1fr_140px_60px] text-center py-3 px-3 sm:px-0 hover:bg-muted/30 transition border-b border-border last:border-none text-sm gap-y-1"
             >
-              <p className="text-gray-500">{post.id}</p>
+              <p className="hidden sm:block text-muted-foreground">{post.id}</p>
               <p
-                className="text-blue-600 hover:underline cursor-pointer text-left pl-4"
+                className="text-foreground hover:text-primary cursor-pointer text-left pl-4 truncate"
                 onClick={() => handleViewContent(post)}
               >
                 {post.title}
               </p>
               <DropdownMenu>
                 <DropdownMenuTrigger>
-                  <div className="flex gap-1 cursor-pointer">
+                  <div className="flex gap-1.5 items-center cursor-pointer">
                     <AvartarModule src={post.profile_image} />
-                    <p>{post.nickname}</p>
+                    <span className="text-sm text-muted-foreground truncate">
+                      {post.nickname}
+                    </span>
                   </div>
                 </DropdownMenuTrigger>
                 {email !== post.email ? (
@@ -113,7 +126,7 @@ export default function FreeBoardLists() {
                     <DropdownMenuItem>친구추가</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className="mt-1 cursor-pointer"
+                      className="cursor-pointer"
                       onClick={() => setChatTarget(post)}
                     >
                       메세지
@@ -124,7 +137,7 @@ export default function FreeBoardLists() {
                     <DropdownMenuItem>수정</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className={`mt-1 cursor-pointer `}
+                      className="cursor-pointer"
                       onClick={() => {
                         const confirmDelete =
                           window.confirm("정말 삭제하시겠습니까?");
@@ -139,9 +152,8 @@ export default function FreeBoardLists() {
                 )}
               </DropdownMenu>
 
-              <p>{post.views}</p>
+              <p className="hidden sm:block text-muted-foreground">{post.views}</p>
 
-              {/* 채팅창 띄우기 */}
               {chatTarget && (
                 <ChatWindow
                   receiverNickname={chatTarget.nickname}
@@ -156,8 +168,9 @@ export default function FreeBoardLists() {
       </Card>
 
       {/* 페이지네이션 */}
-      <div className="flex justify-center items-center gap-3 mt-6">
+      <div className="flex justify-center items-center gap-2 mt-6">
         <Button
+          size="sm"
           className="cursor-pointer"
           variant="outline"
           onClick={() => handlePageChange(page - 1)}
@@ -167,17 +180,21 @@ export default function FreeBoardLists() {
         </Button>
 
         {pageNums.map((num) => (
-          <p
+          <button
             key={num}
-            className={`text-sm text-gray-600 cursor-pointer ${
-              page === num ? "font-bold text-black" : "text-gray-600"
+            onClick={() => handlePageChange(num)}
+            className={`w-8 h-8 rounded-md text-sm cursor-pointer transition-colors ${
+              page === num
+                ? "bg-primary text-primary-foreground font-semibold"
+                : "text-muted-foreground hover:bg-muted"
             }`}
           >
             {num}
-          </p>
+          </button>
         ))}
 
         <Button
+          size="sm"
           className="cursor-pointer"
           variant="outline"
           onClick={() => handlePageChange(page + 1)}
@@ -185,12 +202,6 @@ export default function FreeBoardLists() {
         >
           다음
         </Button>
-        {/* 글쓰기 버튼 (오른쪽 정렬) */}
-        <div className="flex justify-end">
-          <Link href="/crypto/freeboard/write/0">
-            <Button className="cursor-pointer">글쓰기</Button>
-          </Link>
-        </div>
       </div>
     </div>
   );

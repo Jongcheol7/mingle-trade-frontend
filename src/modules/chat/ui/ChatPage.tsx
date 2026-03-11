@@ -176,12 +176,12 @@ export default function ChatPage({ roomId }: Props) {
                 >
                   <div
                     className={`max-w-[75%] break-words rounded-xl px-2 py-1 text-sm ${
-                      isMe ? "bg-blue-100" : "bg-gray-100"
+                      isMe ? "bg-accent" : "bg-muted"
                     }`}
                   >
                     {msg.message}
                   </div>
-                  <div className="text-[10px] text-gray-500 leading-none">
+                  <div className="text-[10px] text-muted-foreground leading-none">
                     <div>{timeTransform(msg.createdAt!).date}</div>
                     <div className={`${isMe ? "text-right" : "text-left"}`}>
                       {timeTransform(msg.createdAt!).time}
@@ -204,7 +204,7 @@ export default function ChatPage({ roomId }: Props) {
         />
         <button
           onClick={handleSend}
-          className="text-sm bg-blue-500 text-white px-3 py-1 rounded"
+          className="text-sm bg-primary text-primary-foreground px-3 py-1 rounded"
         >
           보내기
         </button>

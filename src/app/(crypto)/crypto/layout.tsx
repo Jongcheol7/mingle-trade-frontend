@@ -10,9 +10,15 @@ export default function Layout({ children }: LayoutProp) {
   return (
     <div>
       <CryptoNav />
-      <div className="flex gap-3">
-        {market === "Upbit" ? <UpbitRealtimePrice /> : <BinanceRealtimePrice />}
-        <div className="flex-1">{children}</div>
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-5">
+        <aside className="w-full lg:w-[420px] shrink-0 max-h-[300px] lg:max-h-none overflow-auto">
+          {market === "Upbit" ? (
+            <UpbitRealtimePrice />
+          ) : (
+            <BinanceRealtimePrice />
+          )}
+        </aside>
+        <div className="flex-1 min-w-0">{children}</div>
       </div>
     </div>
   );

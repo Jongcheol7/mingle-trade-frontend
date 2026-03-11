@@ -9,14 +9,18 @@ type Props = {
 
 export default function NavLink({ children, href }: Props) {
   const pathname = usePathname();
+  const isActive = pathname.includes(href);
 
   return (
     <Link
       href={href}
-      className={`relative font-medium text-2xl text-amber-800 transition-all duration-200 hover:text-amber-600 
-        ${pathname.includes(href) ? "text-amber-600 font-semibold" : ""}`}
+      className={`relative text-sm font-medium transition-colors py-1
+        ${isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
     >
       {children}
+      {isActive && (
+        <span className="absolute left-0 -bottom-[21px] w-full h-[2px] bg-primary" />
+      )}
     </Link>
   );
 }

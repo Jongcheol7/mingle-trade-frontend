@@ -87,13 +87,13 @@ export default function NoteToolbar({ editor }: Prop) {
       <div
         ref={toolbarRef}
         className={
-          "w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto bg-white border border-gray-300 rounded-xl px-4 py-2 flex justify-around items-center"
+          "w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto bg-white border border-border rounded-xl px-4 py-2 flex justify-around items-center"
         }
       >
         {/* 글자크기 토글 */}
         <div className="relative">
           <Type
-            className="w-5 h-5 cursor-pointer hover:text-red-700"
+            className="w-5 h-5 cursor-pointer hover:text-primary"
             onClick={() => {
               setIsFontSizeOpen((prev) => !prev);
               setIsAlignOpen(false);
@@ -102,7 +102,7 @@ export default function NoteToolbar({ editor }: Prop) {
           />
 
           {isFontSizeOpen && (
-            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-white border border-gray-300 rounded shadow-md flex flex-col z-50 text-sm">
+            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-white border border-border rounded shadow-md flex flex-col z-50 text-sm">
               {FONT_SIZES.map((size) => (
                 <button
                   key={size}
@@ -112,7 +112,7 @@ export default function NoteToolbar({ editor }: Prop) {
                     }, 0);
                     setIsFontSizeOpen(false);
                   }}
-                  className="px-3 py-1 hover:bg-gray-100"
+                  className="px-3 py-1 hover:bg-muted"
                 >
                   {size.replace("px", "")}px
                 </button>
@@ -122,13 +122,13 @@ export default function NoteToolbar({ editor }: Prop) {
         </div>
         {/* 두껍게 버튼 */}
         <Bold
-          className="w-5 h-5  cursor-pointer hover:text-red-700"
+          className="w-5 h-5  cursor-pointer hover:text-primary"
           onClick={() => editor.chain().focus().toggleBold().run()}
         />
         {/* ✅ 정렬 토글 */}
         <div className="relative">
           <AlignCenter
-            className="w-5 h-5 cursor-pointer hover:text-red-700"
+            className="w-5 h-5 cursor-pointer hover:text-primary"
             onClick={() => {
               setIsFontSizeOpen(false);
               setIsAlignOpen((prev) => !prev);
@@ -137,7 +137,7 @@ export default function NoteToolbar({ editor }: Prop) {
           />
 
           {isAlignOpen && (
-            <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-white border border-gray-300 rounded shadow-md flex gap-2 p-3 z-50">
+            <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 bg-white border border-border rounded shadow-md flex gap-2 p-3 z-50">
               <AlignLeft
                 className="w-5 h-5 cursor-pointer hover:text-blue-600"
                 onClick={() => {
@@ -177,7 +177,7 @@ export default function NoteToolbar({ editor }: Prop) {
           onChange={(e) => handerFile("image", e)}
         />
         <ImagePlus
-          className="w-5 h-5 cursor-pointer hover:text-red-700"
+          className="w-5 h-5 cursor-pointer hover:text-primary"
           onClick={() => fileInputRef.current?.click()}
         />
         {/* 비디오 업로드 버튼 */}
@@ -189,30 +189,30 @@ export default function NoteToolbar({ editor }: Prop) {
           onChange={(e) => handerFile("video", e)}
         />
         <Video
-          className="w-5 h-5 cursor-pointer hover:text-red-700"
+          className="w-5 h-5 cursor-pointer hover:text-primary"
           onClick={() => videoInputRef.current?.click()}
         />
         {/* 리스트 버튼 */}
         <List
-          className="w-5 h-5  cursor-pointer hover:text-red-700"
+          className="w-5 h-5  cursor-pointer hover:text-primary"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
         />
         {/* To-Do 버튼 */}
         <SquareCheckBig
-          className="w-5 h-5  cursor-pointer hover:text-red-700"
+          className="w-5 h-5  cursor-pointer hover:text-primary"
           onClick={() => editor.chain().focus().toggleTaskList().run()}
         />
         {/* 이모티콘 버튼 */}
         <Smile
-          className={`w-5 h-5 cursor-pointer hover:text-red-700`}
+          className={`w-5 h-5 cursor-pointer hover:text-primary`}
           onClick={() => editor.chain().focus().insertContent("📝").run()}
         />
         {/* 글자색 버튼 */}
         <div className="relative">
           {/* 색상 토글 아이콘 */}
           <Paintbrush
-            className={`w-5 h-5 cursor-pointer hover:text-red-700 ${
-              isColorOpen ? "text-red-700" : ""
+            className={`w-5 h-5 cursor-pointer hover:text-primary ${
+              isColorOpen ? "text-primary" : ""
             }`}
             onClick={() => {
               setIsFontSizeOpen(false);
@@ -223,7 +223,7 @@ export default function NoteToolbar({ editor }: Prop) {
 
           {/* 색상 팔레트 */}
           {isColorOpen && (
-            <div className="absolute bottom-full mb-2 right-[-20px] bg-white border border-gray-300 rounded shadow-md p-2 z-50 flex gap-1">
+            <div className="absolute bottom-full mb-2 right-[-20px] bg-white border border-border rounded shadow-md p-2 z-50 flex gap-1">
               {COLOR_PALETTE.map((color) => (
                 <button
                   key={color}
@@ -233,7 +233,7 @@ export default function NoteToolbar({ editor }: Prop) {
                     }, 0);
                     setIsColorOpen(false);
                   }}
-                  className="w-6 h-6 rounded-full border border-gray-300"
+                  className="w-6 h-6 rounded-full border border-border"
                   style={{ backgroundColor: color }}
                 />
               ))}

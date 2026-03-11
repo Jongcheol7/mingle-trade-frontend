@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import api from "@/lib/api";
 
 export function useChatMessage(
   roomId: number,
@@ -9,18 +9,15 @@ export function useChatMessage(
   return useInfiniteQuery({
     queryKey: ["directMessages", roomId],
     queryFn: async ({ pageParam = null }) => {
-      const res = await axios.get(
-        "http://localhost:8080/api/chat/directMessages",
-        {
-          params: {
-            roomId,
-            senderEmail,
-            receiverEmail,
-            cursor: pageParam,
-            limit: 10,
-          },
-        }
-      );
+      const res = await api.get("/api/chat/directMessages", {
+        params: {
+          roomId,
+          senderEmail,
+          receiverEmail,
+          cursor: pageParam,
+          limit: 10,
+        },
+      });
 
       if (res.data.status === "success") {
         return res.data;
@@ -39,7 +36,7 @@ export function useChatRoomLists(email: string) {
   return useQuery({
     queryKey: ["chatRoomLists", email],
     queryFn: async () => {
-      const res = await axios.get("http://localhost:8080/api/chat/roomList", {
+      const res = await api.get("/api/chat/roomList", {
         params: { email },
       });
 
@@ -60,14 +57,11 @@ export function useMakeChatRoom(
 ) {
   return useMutation({
     mutationFn: async () => {
-      const res = await axios.post(
-        "http://localhost:8080/api/chat/makeChatRoom",
-        {
-          senderEmail,
-          receiverEmail,
-          receiverNickname,
-        }
-      );
+      const res = await api.post("/api/chat/makeChatRoom", {
+        senderEmail,
+        receiverEmail,
+        receiverNickname,
+      });
       if (res.data.status === "success") {
         return res.data.data;
       } else {
