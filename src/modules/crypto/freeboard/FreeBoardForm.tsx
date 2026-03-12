@@ -111,9 +111,8 @@ export default function FreeBoardForm({ id }: Props) {
         const s3ImgTag = `<img src="${fileUrl}"${styleAttr} />`;
         uploadHTML = uploadHTML.replace(fullTag, s3ImgTag);
         val.content = uploadHTML;
-      } catch (err) {
-        console.error("이미지 S3 업로드 실패:", err);
-        toast.error("이미지 S3 업로드 실패: " + err);
+      } catch {
+        toast.error("이미지 S3 업로드에 실패했습니다.");
       }
     }
 

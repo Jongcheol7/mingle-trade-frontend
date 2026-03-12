@@ -7,20 +7,17 @@ export function useFreeBoardSave() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: FreeBoard) => {
-      let res;
-      if (Number(data.id) === 0) {
-        res = await api.post("/api/freeboard/insert", data);
-      } else if (Number(data.id) !== 0) {
-        res = await api.put("/api/freeboard/update", data);
-      }
-
-      return res?.data || null;
+      const isNew = Number(data.id) === 0;
+      const res = isNew
+        ? await api.post("/api/freeboard/insert", data)
+        : await api.put("/api/freeboard/update", data);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["freeboardLists"] });
     },
     onError: (err) => {
-      toast.error(err.message);
+      toast.error(err.message || "게시글 저장에 실패했습니다.");
     },
   });
 }
@@ -30,17 +27,11 @@ export function useFreeBoardAllLists(page = 1) {
     queryKey: ["freeboardLists", page],
     queryFn: async () => {
       const res = await api.get("/api/freeboard/selectAll", {
-        params: {
-          page: page,
-          limit: 10,
-        },
+        params: { page, limit: 10 },
       });
-      if (res.data.status === "success") {
-        return res.data.data;
-      } else {
-        throw new Error(res.data.message || "조회 실패");
-      }
+      return res.data.data;
     },
+    staleTime: 30 * 1000,
   });
 }
 
@@ -52,5 +43,23 @@ export function useFreeBoardDetails(id: number) {
       return res.data;
     },
     enabled: Number(id) !== 0,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useFreeBoardDelete() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (postId: number) => {
+      const res = await api.post("/api/freeboard/delete", { id: postId });
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success("게시글이 삭제되었습니다.");
+      queryClient.invalidateQueries({ queryKey: ["freeboardLists"] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "게시글 삭제에 실패했습니다.");
+    },
   });
 }

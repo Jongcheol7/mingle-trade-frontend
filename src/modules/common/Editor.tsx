@@ -62,11 +62,16 @@ export default function Editor({ setEditor, content, readOnly }: EditorType) {
       );
 
       // 3. 삭제된 이미지가 CloudFront라면 S3 삭제 요청
-      deletedImgs.forEach(async (src: string) => {
-        if (src.startsWith(process.env.NEXT_PUBLIC_CLOUDFRONT_DOMAIN ?? "")) {
-          DeleteFromS3(src);
+      for (const src of deletedImgs) {
+        // blob URL 해제
+        if (src.startsWith("blob:")) {
+          URL.revokeObjectURL(src);
         }
-      });
+        // CloudFront 이미지면 S3에서 삭제
+        if (src.startsWith(process.env.NEXT_PUBLIC_CLOUDFRONT_DOMAIN ?? "")) {
+          await DeleteFromS3(src);
+        }
+      }
 
       // 4. 현재 이미지 리스트를 저장
       prevImgsRef.current = currentImgs;
@@ -92,8 +97,11 @@ export default function Editor({ setEditor, content, readOnly }: EditorType) {
               useWebWorker: true,
             };
             const compressed = await imageCompression(file, compressionOption);
-            // File -> base64 문자열로 다시 바꾸기.
             const compressedUrl = URL.createObjectURL(compressed);
+            // 이전 objectURL 해제
+            if (addedImgs[i].startsWith("blob:")) {
+              URL.revokeObjectURL(addedImgs[i]);
+            }
             const newHtml = html.replace(
               addedImgs[i],
               `${compressedUrl}" data-compressed="true`
@@ -104,8 +112,7 @@ export default function Editor({ setEditor, content, readOnly }: EditorType) {
               ...newHtml.matchAll(/<img[^>]+src="([^"]+)"[^>]*>/g),
             ].map((m) => m[1]);
             prevImgsRef.current = replacedImgs;
-          } catch (err) {
-            console.error("이미지 압축 실패 :", err);
+          } catch {
             toast.error("이미지 압축 중 오류가 발생했습니다.");
           }
         }

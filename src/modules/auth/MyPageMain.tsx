@@ -40,9 +40,8 @@ export default function MyPageMain() {
       } else {
         toast.error("닉네임 변경 실패");
       }
-    } catch (err) {
-      toast.error("닉네임 변경 실패 " + err);
-      console.error(err);
+    } catch {
+      toast.error("닉네임 변경에 실패했습니다.");
     }
   };
 
@@ -96,9 +95,8 @@ export default function MyPageMain() {
       } else {
         toast.error("DB 업데이트 실패");
       }
-    } catch (err) {
-      console.error("handleProfileImage 에러:", err);
-      toast.error("프로필 변경 실패: " + err);
+    } catch {
+      toast.error("프로필 이미지 변경에 실패했습니다.");
     }
   };
 

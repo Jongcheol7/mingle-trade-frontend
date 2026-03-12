@@ -6,8 +6,7 @@ export default async function DeleteFromS3(src: string) {
     await api.post("/api/s3/delete", {
       imageUrl: src,
     });
-  } catch (err) {
-    console.error("S3 저장소로부터 사진 삭제에 실패했습니다.", err);
-    toast.error("S3 저장소로부터 사진 삭제 실패");
+  } catch {
+    toast.error("S3 저장소로부터 사진 삭제에 실패했습니다.");
   }
 }

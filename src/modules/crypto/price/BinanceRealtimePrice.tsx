@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api from "@/lib/api";
 import { BinanceStreamTicker, CoinInfo } from "@/types/coin";
 import SearchComponent from "@/modules/common/SearchComponent";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useCryptoMarketStore } from "@/store/useCryptoMarketStore";
 import { Loader2 } from "lucide-react";
+import { useReconnectingWebSocket } from "@/lib/useReconnectingWebSocket";
 
 const today = new Date();
 const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
@@ -25,6 +26,8 @@ const formatted =
   String(yesterday.getMonth() + 1).padStart(2, "0") +
   "-" +
   String(yesterday.getDate()).padStart(2, "0");
+
+const THROTTLE_MS = 500;
 
 export default function BinanceRealtimePrice() {
   const [prevCloseInfo, setPrevCloseInfo] = useState([]);
@@ -37,6 +40,11 @@ export default function BinanceRealtimePrice() {
   const router = useRouter();
   const { market, setMarket } = useCryptoMarketStore();
 
+  const sortKeyRef = useRef(sortKey);
+  const sortOrderRef = useRef(sortOrder);
+  sortKeyRef.current = sortKey;
+  sortOrderRef.current = sortOrder;
+
   useEffect(() => {
     const getPrevCloseInfo = async () => {
       try {
@@ -44,48 +52,42 @@ export default function BinanceRealtimePrice() {
           `/api/prev-price/selectAll/${formatted}`
         );
         setPrevCloseInfo(res.data);
-      } catch (err) {
-        console.error("전일 종가 조회 실패:", err);
+      } catch {
+        // API 인터셉터에서 에러 처리됨
       }
     };
-
     getPrevCloseInfo();
   }, []);
 
-  useEffect(() => {
-    if (prevCloseInfo.length === 0) return;
+  // 쓰로틀된 업데이트
+  const lastUpdateRef = useRef(0);
+  const pendingDataRef = useRef<BinanceStreamTicker[] | null>(null);
+  const rafRef = useRef<number>(undefined);
 
-    const ws = new WebSocket("wss://stream.binance.com:9443/ws/!ticker@arr");
+  const processUpdate = useCallback(
+    (usdtPairs: BinanceStreamTicker[]) => {
+      if (prevCloseInfo.length === 0) return;
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const usdtPairs = data.filter((coin: BinanceStreamTicker) =>
-        coin.s.endsWith("USDT")
-      );
+      const sk = sortKeyRef.current;
+      const so = sortOrderRef.current;
 
-      setCoinInfo((prevState) =>
+      setCoinInfo(
         prevCloseInfo
           .map((p: CoinInfo) => {
             const match = usdtPairs.find(
               (pair: BinanceStreamTicker) => pair.s === p.symbol
             );
 
-            const prevCoin = prevState.find(
-              (c) => c.symbol === p.symbol.replace(/USDT(?=$)/, "")
-            );
-
             if (!match)
-              return prevCoin
-                ? prevCoin
-                : {
-                    closeDate: p.closeDate,
-                    symbol: p.symbol.replace(/USDT(?=$)/, ""),
-                    prevClosePrice: Number(p.price),
-                    price: Number(p.price),
-                    rate: 0,
-                    volume: 0,
-                    logoUrl: p.logoUrl,
-                  };
+              return {
+                closeDate: p.closeDate,
+                symbol: p.symbol.replace(/USDT(?=$)/, ""),
+                prevClosePrice: Number(p.price),
+                price: Number(p.price),
+                rate: 0,
+                volume: 0,
+                logoUrl: p.logoUrl,
+              };
 
             const prev = Number(p.price);
             const now = Number(match.c);
@@ -97,22 +99,79 @@ export default function BinanceRealtimePrice() {
               symbol: p.symbol.replace(/USDT(?=$)/, ""),
               prevClosePrice: prev,
               price: now,
-              rate: rate,
-              volume: volume,
+              rate,
+              volume,
               logoUrl: p.logoUrl,
             };
           })
           .filter(Boolean)
           .sort((a, b) =>
-            sortOrder === "asc"
-              ? (b[sortKey] as number) - (a[sortKey] as number)
-              : (a[sortKey] as number) - (b[sortKey] as number)
+            so === "asc"
+              ? (b[sk] as number) - (a[sk] as number)
+              : (a[sk] as number) - (b[sk] as number)
           )
       );
-    };
+    },
+    [prevCloseInfo]
+  );
 
-    return () => ws.close();
-  }, [prevCloseInfo, sortKey, sortOrder]);
+  const handleMessage = useCallback(
+    (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      const usdtPairs = data.filter((coin: BinanceStreamTicker) =>
+        coin.s.endsWith("USDT")
+      );
+
+      const now = Date.now();
+      if (now - lastUpdateRef.current >= THROTTLE_MS) {
+        lastUpdateRef.current = now;
+        cancelAnimationFrame(rafRef.current!);
+        rafRef.current = requestAnimationFrame(() => processUpdate(usdtPairs));
+      } else {
+        pendingDataRef.current = usdtPairs;
+      }
+    },
+    [processUpdate]
+  );
+
+  // 대기 중인 데이터 처리
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (pendingDataRef.current) {
+        processUpdate(pendingDataRef.current);
+        pendingDataRef.current = null;
+      }
+    }, THROTTLE_MS);
+    return () => clearInterval(interval);
+  }, [processUpdate]);
+
+  useReconnectingWebSocket({
+    url: "wss://stream.binance.com:9443/ws/!ticker@arr",
+    onMessage: handleMessage,
+    enabled: prevCloseInfo.length > 0,
+  });
+
+  // 정렬 변경 시 즉시 반영
+  useEffect(() => {
+    if (coinInfo.length === 0) return;
+    setCoinInfo((prev) =>
+      [...prev].sort((a, b) =>
+        sortOrder === "asc"
+          ? (b[sortKey] as number) - (a[sortKey] as number)
+          : (a[sortKey] as number) - (b[sortKey] as number)
+      )
+    );
+  }, [sortKey, sortOrder]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const filteredCoins = useMemo(
+    () =>
+      coinInfo.filter(
+        (coin) =>
+          keyword === "" ||
+          coin.symbol.toLowerCase().includes(keyword.toLowerCase())
+      ),
+    [coinInfo, keyword]
+  );
 
   return (
     <div className="p-4 relative rounded-2xl border border-border bg-card shadow-sm text-foreground">
@@ -172,43 +231,41 @@ export default function BinanceRealtimePrice() {
             거래량
           </BinanceRealTimeLabel>
         </li>
-        {coinInfo.length > 0 ? (
-          coinInfo
-            .filter((coin) => keyword === "" || coin.symbol.includes(keyword))
-            .map((coin) => (
-              <li
-                key={coin.symbol}
-                className="grid grid-cols-[130px_100px_70px_80px] py-1 border-b border-border"
-              >
-                <div className="flex items-center gap-2">
-                  <Avatar className="w-6 h-6 border border-border shadow-sm">
-                    <AvatarImage src={coin.logoUrl || "/default_profile.png"} />
-                    <AvatarFallback className="text-xs bg-muted text-muted-foreground">
-                      {""}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span
-                    className="text-left text-[16px] font-bold cursor-pointer line-clamp-1 hover:text-primary transition-colors"
-                    onClick={() => router.push(`/crypto/chart/${coin.symbol}`)}
-                  >
-                    {coin.symbol}
-                  </span>
-                </div>
-                <span className="text-right text-[16px] font-bold">
-                  {coin.price}
-                </span>
+        {filteredCoins.length > 0 ? (
+          filteredCoins.map((coin) => (
+            <li
+              key={coin.symbol}
+              className="grid grid-cols-[130px_100px_70px_80px] py-1 border-b border-border"
+            >
+              <div className="flex items-center gap-2">
+                <Avatar className="w-6 h-6 border border-border shadow-sm">
+                  <AvatarImage src={coin.logoUrl || "/default_profile.png"} />
+                  <AvatarFallback className="text-xs bg-muted text-muted-foreground">
+                    {""}
+                  </AvatarFallback>
+                </Avatar>
                 <span
-                  className={`text-right text-[16px] ${
-                    coin.rate >= 0 ? "text-emerald-500" : "text-red-500"
-                  }`}
+                  className="text-left text-[16px] font-bold cursor-pointer line-clamp-1 hover:text-primary transition-colors"
+                  onClick={() => router.push(`/crypto/chart/${coin.symbol}`)}
                 >
-                  {coin.rate.toFixed(2)}%
+                  {coin.symbol}
                 </span>
-                <span className="text-right text-[16px] font-bold">
-                  {formatVolume(coin.volume ? coin.volume : 0)}
-                </span>
-              </li>
-            ))
+              </div>
+              <span className="text-right text-[16px] font-bold">
+                {coin.price}
+              </span>
+              <span
+                className={`text-right text-[16px] ${
+                  coin.rate >= 0 ? "text-emerald-500" : "text-red-500"
+                }`}
+              >
+                {coin.rate.toFixed(2)}%
+              </span>
+              <span className="text-right text-[16px] font-bold">
+                {formatVolume(coin.volume ? coin.volume : 0)}
+              </span>
+            </li>
+          ))
         ) : (
           <Loader2 className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 animate-spin text-muted-foreground" />
         )}

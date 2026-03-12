@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import axios from "axios";
 import { createChart } from "lightweight-charts";
+import api from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { tickLists } from "./TickLists";
@@ -51,8 +51,9 @@ export default function BinanceChart({ symbol }: Props) {
     // 초기 데이터 로드
     (async () => {
       try {
-        const res = await axios.get(
-          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${tick}&limit=5000`
+        const res = await api.get(
+          `https://api.binance.com/api/v3/klines?symbol=${symbol}USDT&interval=${tick}&limit=5000`,
+          { baseURL: "" }
         );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const formatted = res.data.map((d: any) => ({
@@ -63,9 +64,8 @@ export default function BinanceChart({ symbol }: Props) {
           close: parseFloat(d[4]),
         }));
         candleSeries.setData(formatted);
-      } catch (err) {
-        console.error("차트 데이터 로드 err ", err);
-        toast.error("차트 데이터 로드 err : " + err);
+      } catch {
+        toast.error("차트 데이터를 불러오지 못했습니다.");
       }
     })();
 

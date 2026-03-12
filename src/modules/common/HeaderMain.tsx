@@ -25,9 +25,8 @@ export default function HeaderMain() {
         await api.post("/api/auth/logout");
         clearUser();
         router.push("/");
-      } catch (err) {
-        toast.error("로그아웃 실패");
-        console.error("로그아웃 실패 : ", err);
+      } catch {
+        toast.error("로그아웃에 실패했습니다.");
       }
     } else {
       setAuthVisible(true);

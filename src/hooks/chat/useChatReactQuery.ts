@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { toast } from "sonner";
 
 export function useChatMessage(
   roomId: number,
@@ -18,17 +19,13 @@ export function useChatMessage(
           limit: 10,
         },
       });
-
-      if (res.data.status === "success") {
-        return res.data;
-      } else {
-        throw new Error(res.data.message || "조회 실패");
-      }
+      return res.data;
     },
     getNextPageParam: (lastPage) => {
       return lastPage.nextCursor ?? undefined;
     },
     initialPageParam: null,
+    staleTime: 0,
   });
 }
 
@@ -39,34 +36,33 @@ export function useChatRoomLists(email: string) {
       const res = await api.get("/api/chat/roomList", {
         params: { email },
       });
-
-      if (res.data.status === "success") {
-        return res.data.data;
-      } else {
-        throw new Error(res.data.message || "조회 실패");
-      }
+      return res.data.data;
     },
     enabled: !!email,
+    staleTime: 10 * 1000,
   });
 }
 
-export function useMakeChatRoom(
-  senderEmail: string,
-  receiverEmail: string,
-  receiverNickname: string
-) {
+export function useMakeChatRoom() {
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async ({
+      senderEmail,
+      receiverEmail,
+      receiverNickname,
+    }: {
+      senderEmail: string;
+      receiverEmail: string;
+      receiverNickname: string;
+    }) => {
       const res = await api.post("/api/chat/makeChatRoom", {
         senderEmail,
         receiverEmail,
         receiverNickname,
       });
-      if (res.data.status === "success") {
-        return res.data.data;
-      } else {
-        throw new Error(res.data.message || "방 생성 실패");
-      }
+      return res.data.data;
+    },
+    onError: (err) => {
+      toast.error(err.message || "채팅방 생성에 실패했습니다.");
     },
   });
 }

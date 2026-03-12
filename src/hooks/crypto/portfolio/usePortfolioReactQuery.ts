@@ -1,13 +1,8 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
-import { AxiosError } from "axios";
 import { toast } from "sonner";
 
-type FormData = {
+type PortfolioFormData = {
   enterPrice: number;
   quantity: number;
   email: string;
@@ -18,19 +13,14 @@ type FormData = {
 export function usePortfolioSelect(email: string, currency: string) {
   return useQuery({
     queryKey: ["portfolio", email, currency],
-    queryFn: async ({ queryKey }) => {
-      const [, email] = queryKey;
+    queryFn: async () => {
       const res = await api.get("/api/portfolio/select", {
         params: { email, currency },
       });
-
-      if (res.data.status === "success") {
-        return res.data.data;
-      } else {
-        throw new Error(res.data.message || "조회 실패");
-      }
+      return res.data.data;
     },
     enabled: !!email,
+    staleTime: 30 * 1000,
   });
 }
 
@@ -47,24 +37,20 @@ export function usePortfolioDelete() {
       currency: string;
     }) => {
       const res = await api.post("/api/portfolio/delete", {
-        email: email,
-        id: id,
-        currency: currency,
+        email,
+        id,
+        currency,
       });
       return res.data;
     },
-    onSuccess: (data, { email, currency }) => {
-      if (data.status === "success") {
-        toast.success("포트폴리오가 삭제되었습니다.");
-        queryClient.invalidateQueries({
-          queryKey: ["portfolio", email, currency],
-        });
-      } else {
-        throw new Error(data.message || "포트폴리오 삭제에 실패했습니다.");
-      }
+    onSuccess: (_data, { email, currency }) => {
+      toast.success("포트폴리오가 삭제되었습니다.");
+      queryClient.invalidateQueries({
+        queryKey: ["portfolio", email, currency],
+      });
     },
-    onError: () => {
-      toast.error("서버 통신 에러.");
+    onError: (err) => {
+      toast.error(err.message || "포트폴리오 삭제에 실패했습니다.");
     },
   });
 }
@@ -72,34 +58,18 @@ export function usePortfolioDelete() {
 export function usePortfolioUpdate() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      enterPrice,
-      quantity,
-      email,
-      symbol,
-      currency,
-    }: FormData) => {
-      const res = await api.post("/api/portfolio/update", {
-        enterPrice,
-        quantity,
-        email,
-        symbol,
-        currency,
-      });
+    mutationFn: async (data: PortfolioFormData) => {
+      const res = await api.post("/api/portfolio/update", data);
       return res.data;
     },
-    onSuccess: (data, { email, currency }) => {
-      if (data.status === "success") {
-        toast.success("포트폴리오가 업데이트 되었습니다.");
-        queryClient.invalidateQueries({
-          queryKey: ["portfolio", email, currency],
-        });
-      } else {
-        throw new Error(data.message || "포트폴리오 업데이트에 실패했습니다.");
-      }
+    onSuccess: (_data, { email, currency }) => {
+      toast.success("포트폴리오가 업데이트 되었습니다.");
+      queryClient.invalidateQueries({
+        queryKey: ["portfolio", email, currency],
+      });
     },
-    onError: () => {
-      toast.error("서버 통신 에러.");
+    onError: (err) => {
+      toast.error(err.message || "포트폴리오 업데이트에 실패했습니다.");
     },
   });
 }
@@ -107,36 +77,18 @@ export function usePortfolioUpdate() {
 export function usePortfolioInsert() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      enterPrice,
-      quantity,
-      email,
-      symbol,
-      currency,
-    }: FormData) => {
-      const res = await api.post("/api/portfolio/insert", {
-        enterPrice,
-        quantity,
-        email,
-        symbol,
-        currency,
-      });
+    mutationFn: async (data: PortfolioFormData) => {
+      const res = await api.post("/api/portfolio/insert", data);
       return res.data;
     },
-    onSuccess: (data, { email, currency }) => {
-      if (data.status === "success") {
-        toast.success("포트폴리오가 업데이트 되었습니다.");
-        queryClient.invalidateQueries({
-          queryKey: ["portfolio", email, currency],
-        });
-      } else {
-        throw new Error(data.message || "포트폴리오 업데이트에 실패했습니다.");
-      }
+    onSuccess: (_data, { email, currency }) => {
+      toast.success("포트폴리오가 추가되었습니다.");
+      queryClient.invalidateQueries({
+        queryKey: ["portfolio", email, currency],
+      });
     },
-    onError: (error: AxiosError<{ message: string }>) => {
-      const message =
-        error.response?.data.message || "서버 오류가 발생했습니다.";
-      toast.error(message);
+    onError: (err) => {
+      toast.error(err.message || "포트폴리오 추가에 실패했습니다.");
     },
   });
 }

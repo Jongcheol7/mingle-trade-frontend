@@ -2,7 +2,10 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useFreeBoardAllLists } from "@/hooks/crypto/freeboard/useFreeBoardReactQuery";
+import {
+  useFreeBoardAllLists,
+  useFreeBoardDelete,
+} from "@/hooks/crypto/freeboard/useFreeBoardReactQuery";
 import { useState } from "react";
 import { FreeBoard } from "@/types/freeboard";
 import { Loader2, PenLine } from "lucide-react";
@@ -26,6 +29,7 @@ export default function FreeBoardLists() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { email } = useUserStore();
+  const { mutate: deleteMutate } = useFreeBoardDelete();
   const [chatTarget, setChatTarget] = useState<FreeBoard | null>(null);
 
   if (isLoading) {
@@ -139,10 +143,8 @@ export default function FreeBoardLists() {
                     <DropdownMenuItem
                       className="cursor-pointer"
                       onClick={() => {
-                        const confirmDelete =
-                          window.confirm("정말 삭제하시겠습니까?");
-                        if (confirmDelete) {
-                          //deleteMutate({ postId: post.id, onClose });
+                        if (window.confirm("정말 삭제하시겠습니까?")) {
+                          deleteMutate(post.id);
                         }
                       }}
                     >

@@ -2,26 +2,45 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 type Props = {
-  symbol: string; // 예: 'bitcoin', 'ethereum', 'solana'
+  symbol: string;
+};
+
+type CoinData = {
+  name: string;
+  symbol: string;
+  image: { large: string };
+  genesis_date: string | null;
+  hashing_algorithm: string | null;
+  description: { ko: string; en: string };
+  links: {
+    homepage: string[];
+    whitepaper: string;
+  };
+  market_data: {
+    current_price: { usd: number; krw: number };
+    market_cap: { usd: number; krw: number };
+    circulating_supply: number;
+    total_supply: number | null;
+  };
 };
 
 export default function InfoMain({ symbol }: Props) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [coin, setCoin] = useState<any>(null);
-  const [lang, setLang] = useState<"ko" | "en">("en"); // 🇰🇷🇺🇸 선택
-  const [currency, setCurrency] = useState<"usd" | "krw">("usd"); // 통화 단위
+  const [coin, setCoin] = useState<CoinData | null>(null);
+  const [lang, setLang] = useState<"ko" | "en">("en");
+  const [currency, setCurrency] = useState<"usd" | "krw">("usd");
 
   useEffect(() => {
     const fetchCoinData = async () => {
       try {
         const res = await axios.get(
-          `https://api.coingecko.com/api/v3/coins/bitcoin`
+          `https://api.coingecko.com/api/v3/coins/${symbol.toLowerCase()}`
         );
         setCoin(res.data);
-      } catch (err: unknown) {
-        console.error("코인 데이터 불러오기 실패:", err);
+      } catch {
+        toast.error("코인 데이터를 불러오지 못했습니다.");
       }
     };
 
@@ -32,22 +51,19 @@ export default function InfoMain({ symbol }: Props) {
 
   const data = coin.market_data;
 
-  // 💡 언어별 설명 처리
   const description =
     lang === "ko"
       ? coin.description?.ko || "설명 정보가 없습니다."
       : coin.description?.en || "Description not available.";
 
-  // 💡 통화별 금액 처리
   const currentPrice =
     currency === "krw" ? data.current_price.krw : data.current_price.usd;
 
   const marketCap =
     currency === "krw" ? data.market_cap.krw : data.market_cap.usd;
 
-  const currencySymbol = currency === "krw" ? "₩" : "$";
+  const currencySymbol = currency === "krw" ? "\u20A9" : "$";
 
-  // 💡 긴 숫자에 대한 locale format (자동 자릿수 구분)
   const formatNumber = (num: number) =>
     num?.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
@@ -83,8 +99,8 @@ export default function InfoMain({ symbol }: Props) {
             value={lang}
             onChange={(e) => setLang(e.target.value as "ko" | "en")}
           >
-            <option value="en">🇺🇸 English</option>
-            <option value="ko">🇰🇷 한국어</option>
+            <option value="en">English</option>
+            <option value="ko">한국어</option>
           </select>
 
           <select
@@ -93,7 +109,7 @@ export default function InfoMain({ symbol }: Props) {
             onChange={(e) => setCurrency(e.target.value as "usd" | "krw")}
           >
             <option value="usd">USD ($)</option>
-            <option value="krw">KRW (₩)</option>
+            <option value="krw">KRW ({"\u20A9"})</option>
           </select>
         </div>
       </div>
@@ -125,7 +141,7 @@ export default function InfoMain({ symbol }: Props) {
         <div className="bg-muted p-4 rounded-xl min-w-[150px]">
           <p className="text-xs text-muted-foreground">총 발행량</p>
           <p className="text-lg font-semibold break-words">
-            {formatNumber(data.total_supply) ?? "정보 없음"}
+            {data.total_supply ? formatNumber(data.total_supply) : "정보 없음"}
           </p>
         </div>
       </div>
@@ -154,6 +170,7 @@ export default function InfoMain({ symbol }: Props) {
             <a
               href={coin.links.homepage[0]}
               target="_blank"
+              rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
               {lang === "ko" ? "공식 홈페이지" : "Official Site"}
@@ -163,6 +180,7 @@ export default function InfoMain({ symbol }: Props) {
             <a
               href={coin.links.whitepaper}
               target="_blank"
+              rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
               {lang === "ko" ? "백서" : "Whitepaper"}

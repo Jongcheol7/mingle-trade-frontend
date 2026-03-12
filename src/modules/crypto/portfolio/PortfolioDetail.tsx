@@ -103,8 +103,8 @@ export default function PortfolioDetail({
           evalAmount: { id: portfolio.id, evalAmount },
           buyAmount: { id: portfolio.id, buyAmount },
         });
-      } catch (err) {
-        console.error("시세 불러오기 실패:", err);
+      } catch {
+        // API 인터셉터에서 에러 처리됨
       }
     };
 

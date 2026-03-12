@@ -90,9 +90,8 @@ export default function PortfolioNew({ setVisibleNew, market, email }: Props) {
 
           setCoinList(formatted);
         }
-      } catch (err) {
-        console.error(err);
-        toast.error(`${market} 코인 목록 불러오기 실패`);
+      } catch {
+        toast.error(`${market} 코인 목록 불러오기에 실패했습니다.`);
       }
     };
 
